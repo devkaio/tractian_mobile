@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   dio: ^5.7.0
   flutter_bloc: ^8.1.6
+  data_result:
+    path: ./packages/data_result
 
 dev_dependencies:
   flutter_test:
