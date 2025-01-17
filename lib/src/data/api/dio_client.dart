@@ -1,13 +1,17 @@
 import 'package:dio/dio.dart';
 
 class DioClient {
-  final Dio _dio = Dio();
+  static final _baseUrl = 'https://fake-api.tractian.com';
 
-  final String _defaultBaseUrl = 'https://fake-api.tractian.com';
+  final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: _baseUrl,
+      connectTimeout: Duration(seconds: 5),
+      receiveTimeout: Duration(seconds: 5),
+    ),
+  );
 
-  DioClient() {
-    _dio.options.baseUrl = _defaultBaseUrl;
-  }
+  DioClient();
 
   Future<Response<T>> get<T>(
     String url, {
@@ -16,9 +20,7 @@ class DioClient {
     String? overrideBaseUrl,
   }) async {
     try {
-      if (overrideBaseUrl != null) {
-        _dio.options.baseUrl = overrideBaseUrl;
-      }
+      _dio.options.baseUrl = overrideBaseUrl ?? _baseUrl;
 
       final response = await _dio.get<T>(
         url,
@@ -27,10 +29,6 @@ class DioClient {
         ),
         queryParameters: params,
       );
-
-      if (overrideBaseUrl != null) {
-        _dio.options.baseUrl = _defaultBaseUrl;
-      }
 
       return response;
     } catch (e) {
