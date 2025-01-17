@@ -1,4 +1,5 @@
 import 'package:data_result/data_result.dart';
+import 'package:dio/dio.dart';
 import 'package:tractian_mobile/src/data/api/dio_client.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
@@ -16,8 +17,11 @@ class AssetRepositoryImpl implements AssetRepository {
       final assets =
           (response.data as List).map((json) => Asset.fromJson(json)).toList();
       return DataResult.success(assets);
+    } on DioException catch (e) {
+      // TODO: manage messages
+      return DataResult.failure(AssetFailure(e.message));
     } catch (e) {
-      return DataResult.failure(AssetFailure());
+      return DataResult.failure(AssetFailure(e.toString()));
     }
   }
 }
