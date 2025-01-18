@@ -2,19 +2,19 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 
-class Asset extends Equatable {
+class Component extends Equatable {
   final String id;
   final String name;
-  final String? locationId;
   final String? parentId;
+  final String? locationId;
   final String? sensorType;
   final String? status;
 
-  const Asset({
+  const Component({
     required this.id,
     required this.name,
-    this.locationId,
     this.parentId,
+    this.locationId,
     this.sensorType,
     this.status,
   });
@@ -23,8 +23,10 @@ class Asset extends Equatable {
   List<Object?> get props => [
         id,
         name,
-        locationId,
         parentId,
+        locationId,
+        sensorType,
+        status,
       ];
 
   @override
@@ -34,20 +36,20 @@ class Asset extends Equatable {
     return <String, dynamic>{
       'id': id,
       'name': name,
-      'locationId': locationId,
       'parentId': parentId,
+      'locationId': locationId,
       'sensorType': sensorType,
       'status': status,
     };
   }
 
-  factory Asset.fromMap(Map<String, dynamic> map) {
-    return Asset(
+  factory Component.fromMap(Map<String, dynamic> map) {
+    return Component(
       id: map['id'] as String,
       name: map['name'] as String,
+      parentId: map['parentId'] != null ? map['parentId'] as String : null,
       locationId:
           map['locationId'] != null ? map['locationId'] as String : null,
-      parentId: map['parentId'] != null ? map['parentId'] as String : null,
       sensorType:
           map['sensorType'] != null ? map['sensorType'] as String : null,
       status: map['status'] != null ? map['status'] as String : null,
@@ -56,6 +58,6 @@ class Asset extends Equatable {
 
   String toJson() => json.encode(toMap());
 
-  factory Asset.fromJson(String source) =>
-      Asset.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory Component.fromJson(String source) =>
+      Component.fromMap(json.decode(source) as Map<String, dynamic>);
 }
