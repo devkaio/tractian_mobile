@@ -1,58 +1,91 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tractian_mobile/src/domain/entities/asset.dart';
-import 'package:tractian_mobile/src/domain/entities/location.dart';
-import 'package:tractian_mobile/src/domain/usecases/asset_tree_usecase.dart';
+import 'package:tractian_mobile/src/domain/entities/node.dart';
+import 'package:tractian_mobile/src/domain/usecases/build_tree_usecase.dart';
 
-abstract class AssetState {
-  const AssetState();
+enum AssetStateStatus {
+  initial,
+  loading,
+  success,
+  filtered,
+  error;
 }
 
-class AssetStateInitial extends AssetState {
-  const AssetStateInitial();
-}
+class AssetState {
+  const AssetState({
+    this.nodes = const [],
+    this.filteredNodes = const [],
+    this.status = AssetStateStatus.initial,
+    this.message = '',
+  });
 
-class AssetStateLoading extends AssetState {
-  const AssetStateLoading();
-}
-
-class AssetStateError extends AssetState {
+  final List<Node> nodes;
+  final List<Node> filteredNodes;
+  final AssetStateStatus status;
   final String message;
 
-  const AssetStateError(this.message);
-}
-
-class AssetStateSuccess extends AssetState {
-  final List<Asset> assets;
-  final List<Location> locations;
-
-  const AssetStateSuccess({
-    required this.assets,
-    required this.locations,
-  });
+  AssetState copyWith({
+    List<Node>? nodes,
+    List<Node>? filteredNodes,
+    AssetStateStatus? status,
+    String? message,
+  }) {
+    return AssetState(
+      nodes: nodes ?? this.nodes,
+      filteredNodes: filteredNodes ?? this.filteredNodes,
+      status: status ?? this.status,
+      message: message ?? this.message,
+    );
+  }
 }
 
 class AssetCubit extends Cubit<AssetState> {
-  final AssetTreeUseCase assetTreeUseCase;
+  final BuildTreeUseCase buildTreeUseCase;
 
-  AssetCubit(this.assetTreeUseCase) : super(AssetStateInitial());
+  AssetCubit(this.buildTreeUseCase) : super(const AssetState());
 
   Future<void> fetchAssetTree(String companyId) async {
-    emit(AssetStateLoading());
+    emit(state.copyWith(status: AssetStateStatus.loading));
 
-    final result = await assetTreeUseCase.fetchAssetTreeData(companyId);
+    final result = await buildTreeUseCase.fetchTreeData(companyId);
 
     result.fold(
-      (error) => emit(AssetStateError(error.message)),
-      (data) {
-        final treeData = result.data!;
-        final assets = treeData['assets'] as List<Asset>;
-        final locations = treeData['locations'] as List<Location>;
-
-        emit(AssetStateSuccess(
-          assets: assets,
-          locations: locations,
+      (error) {
+        emit(state.copyWith(
+          status: AssetStateStatus.error,
+          message: error.message,
         ));
       },
+      (nodes) {
+        emit(
+          state.copyWith(
+            nodes: nodes,
+            status: AssetStateStatus.success,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> filterByText({String query = ''}) async {
+    if (query.isEmpty) {
+      return emit(
+        state.copyWith(
+          filteredNodes: state.nodes,
+          status: AssetStateStatus.filtered,
+        ),
+      );
+    }
+
+    final filteredNodes = buildTreeUseCase.filterTreeData(
+      nodes: state.nodes,
+      query: query,
+    );
+
+    emit(
+      state.copyWith(
+        filteredNodes: filteredNodes,
+        status: AssetStateStatus.filtered,
+      ),
     );
   }
 }
