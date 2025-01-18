@@ -14,7 +14,7 @@ class LocationRepositoryImpl implements LocationRepository {
     try {
       final response = await dioClient.get('/companies/$companyId/locations');
       final locations = (response.data as List)
-          .map((json) => Location.fromJson(json))
+          .map((json) => Location.fromMap(json))
           .toList();
       return DataResult.success(locations);
     } catch (e) {

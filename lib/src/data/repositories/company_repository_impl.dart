@@ -13,9 +13,8 @@ class CompanyRepositoryImpl implements CompanyRepository {
   Future<DataResult<List<Company>>> getCompanies() async {
     try {
       final response = await dioClient.get('/companies');
-      final companies = (response.data as List)
-          .map((json) => Company.fromJson(json))
-          .toList();
+      final companies =
+          (response.data as List).map((json) => Company.fromMap(json)).toList();
       return DataResult.success(companies);
     } catch (e) {
       return DataResult.failure(CompanyFailure());

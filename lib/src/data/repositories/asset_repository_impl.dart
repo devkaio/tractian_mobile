@@ -15,7 +15,7 @@ class AssetRepositoryImpl implements AssetRepository {
     try {
       final response = await dioClient.get('/companies/$companyId/assets');
       final assets =
-          (response.data as List).map((json) => Asset.fromJson(json)).toList();
+          (response.data as List).map((json) => Asset.fromMap(json)).toList();
       return DataResult.success(assets);
     } on DioException catch (e) {
       // TODO: manage messages
