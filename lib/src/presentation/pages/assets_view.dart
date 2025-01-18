@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tractian_mobile/src/presentation/cubits/assets_cubit.dart';
 
-import 'widgets/asset_tree_view.dart';
+import 'widgets/tree_view.dart';
 
 class AssetView extends StatefulWidget {
   final String companyId;
@@ -27,21 +27,52 @@ class _AssetViewState extends State<AssetView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Assets')),
-      body: BlocBuilder<AssetCubit, AssetState>(
-        builder: (context, state) {
-          if (state is AssetStateLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state is AssetStateError) {
-            return Center(child: Text('Error: ${state.message}'));
-          } else if (state is AssetStateSuccess) {
-            return AssetTreeView(
-              locations: state.locations,
-              assets: state.assets,
-            );
-          } else {
-            return Center(child: Text('No data'));
-          }
-        },
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            spacing: 16.0,
+            children: [
+              InkWell(
+                onTap: () {},
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Sensor de Energia'),
+                ),
+              ),
+              InkWell(
+                onTap: () {},
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Critico'),
+                ),
+              ),
+            ],
+          ),
+          SearchBar(
+            onChanged: (query) {
+              context.read<AssetCubit>().filterByText(query: query);
+            },
+          ),
+          Flexible(
+            child: BlocBuilder<AssetCubit, AssetState>(
+              builder: (context, state) {
+                switch (state.status) {
+                  case AssetStateStatus.loading:
+                    return Center(child: CircularProgressIndicator());
+                  case AssetStateStatus.error:
+                    return Center(child: Text('Error: ${state.message}'));
+                  case AssetStateStatus.success:
+                    return TreeView(nodes: state.nodes);
+                  case AssetStateStatus.filtered:
+                    return TreeView(nodes: state.filteredNodes);
+                  default:
+                    return Center(child: Text('No data'));
+                }
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
