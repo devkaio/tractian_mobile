@@ -6,7 +6,7 @@ import 'package:tractian_mobile/src/data/repositories/company_repository_impl.da
 import 'package:tractian_mobile/src/data/repositories/location_repository_impl.dart';
 import 'package:tractian_mobile/src/domain/repositories/asset_repository.dart';
 import 'package:tractian_mobile/src/domain/repositories/company_repository.dart';
-import 'package:tractian_mobile/src/domain/usecases/asset_tree_usecase.dart';
+import 'package:tractian_mobile/src/domain/usecases/build_tree_usecase.dart';
 import 'package:tractian_mobile/src/presentation/cubits/assets_cubit.dart';
 import 'package:tractian_mobile/src/presentation/cubits/company_cubit.dart';
 import 'package:tractian_mobile/src/presentation/pages/assets_view.dart';
@@ -48,7 +48,7 @@ class MainApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (context) => AssetCubit(
-              AssetTreeUseCase(
+              BuildTreeUseCase(
                 assetRepository: context.read<AssetRepository>(),
                 locationRepository: context.read<LocationRepositoryImpl>(),
               ),
