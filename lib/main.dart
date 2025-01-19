@@ -46,14 +46,6 @@ class MainApp extends StatelessWidget {
             create: (context) => CompanyCubit(context.read<CompanyRepository>())
               ..fetchCompanies(),
           ),
-          BlocProvider(
-            create: (context) => AssetCubit(
-              BuildTreeUseCase(
-                assetRepository: context.read<AssetRepository>(),
-                locationRepository: context.read<LocationRepositoryImpl>(),
-              ),
-            ),
-          ),
         ],
         child: MaterialApp(
           title: 'Tractian Mobile',
@@ -64,7 +56,15 @@ class MainApp extends StatelessWidget {
               final companyId =
                   ModalRoute.of(context)?.settings.arguments as String;
 
-              return AssetView(companyId: companyId);
+              return BlocProvider(
+                create: (context) => AssetCubit(
+                  BuildTreeUseCase(
+                    assetRepository: context.read<AssetRepository>(),
+                    locationRepository: context.read<LocationRepositoryImpl>(),
+                  ),
+                ),
+                child: AssetView(companyId: companyId),
+              );
             },
           },
         ),
