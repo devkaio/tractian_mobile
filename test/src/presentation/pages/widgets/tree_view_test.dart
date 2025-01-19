@@ -1,3 +1,4 @@
+import 'package:bluecapped/bluecapped.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -25,6 +26,7 @@ void main() {
               id: '1-1',
               name: 'Node 1-1',
               type: NodeType.asset,
+              sensorType: 'energy',
               status: 'alert',
               children: [],
             ),
@@ -35,6 +37,7 @@ void main() {
           name: 'Node 2',
           type: NodeType.component,
           status: 'operating',
+          sensorType: 'energy',
           children: [],
         ),
       ];
@@ -59,8 +62,8 @@ void main() {
 
       expect(find.text('Node 1'), findsOneWidget);
       expect(find.text('Node 2'), findsOneWidget);
-      expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
-      expect(find.byIcon(Icons.token_outlined), findsOneWidget);
+      expect(find.byIcon(BlueCappedIcons.location), findsOneWidget);
+      expect(find.byIcon(BlueCappedIcons.component), findsOneWidget);
     });
 
     testWidgets('TreeTileWidget expands and collapses correctly',
@@ -102,7 +105,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.bolt), findsNWidgets(2));
+      expect(find.byIcon(Icons.bolt), findsNWidgets(1));
       expect(find.byIcon(Icons.circle), findsNothing);
 
       await tester.tap(find.text('Node 1'));

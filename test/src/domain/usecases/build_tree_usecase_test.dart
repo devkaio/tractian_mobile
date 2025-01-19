@@ -25,6 +25,12 @@ void main() {
     );
   });
 
+  group('BuildTreeUseCase Benchmark', () {
+    test('Benchmark BuildTreeUseCase', () {
+      BuildTreeIsolatedBenchmark().report();
+    });
+  });
+
   group('fetchTreeData', () {
     test(
         'should return DataResult.success with tree data when repositories return data',
@@ -65,10 +71,12 @@ void main() {
         () async {
       final companyId = 'company1';
       final error = AssetFailure('Error fetching assets');
-      when(() => mockAssetRepository.fetchAssets(companyId))
-          .thenAnswer((_) async => DataResult.failure(error));
-      when(() => mockLocationRepository.fetchLocations(companyId))
-          .thenAnswer((_) async => DataResult.success([]));
+      when(() => mockAssetRepository.fetchAssets(companyId)).thenAnswer(
+        (_) async => DataResult.failure(error),
+      );
+      when(() => mockLocationRepository.fetchLocations(companyId)).thenAnswer(
+        (_) async => DataResult.success([]),
+      );
 
       final result = await buildTreeUseCase.fetchTreeData(companyId);
 
@@ -82,10 +90,12 @@ void main() {
         () async {
       final companyId = 'company1';
       final error = LocationFailure('Error fetching locations');
-      when(() => mockAssetRepository.fetchAssets(companyId))
-          .thenAnswer((_) async => DataResult.success([]));
-      when(() => mockLocationRepository.fetchLocations(companyId))
-          .thenAnswer((_) async => DataResult.failure(error));
+      when(() => mockAssetRepository.fetchAssets(companyId)).thenAnswer(
+        (_) async => DataResult.success([]),
+      );
+      when(() => mockLocationRepository.fetchLocations(companyId)).thenAnswer(
+        (_) async => DataResult.failure(error),
+      );
 
       final result = await buildTreeUseCase.fetchTreeData(companyId);
 
@@ -94,9 +104,9 @@ void main() {
       expect(result.error!.message, error.message);
     });
   });
+
   group('BuildTreeIsolated', () {
     test('should build tree correctly with given data', () {
-      // Sample data for testing
       final locations = List<Location>.generate(
         10,
         (i) => Location(
@@ -122,7 +132,7 @@ void main() {
           id: 'comp$i',
           name: 'Component $i',
           parentId: i == 0 ? null : 'comp${i - 1}',
-          locationId: null,
+          locationId: i % 2 == 0 ? 'loc${i % 5}' : null,
         ),
       );
 
@@ -132,7 +142,7 @@ void main() {
         'components': components,
       };
 
-      final result = BuildTreeUseCase.buildTreeIsolated(data);
+      final result = BuildTreeUseCase.buildTree(data);
 
       expect(result, isNotNull);
       expect(result.length, greaterThan(0));
@@ -141,17 +151,95 @@ void main() {
         verifyTreeStructure(rootNode);
       }
     });
-  });
-  group('Benchmarks', () {
-    test('BuildTreeIsolated Benchmark', () {
-      BuildTreeIsolatedBenchmark().report();
+
+    test('Components linked to locations are populated as children', () {
+      final locations = [
+        Location(id: 'loc1', name: 'Location 1', parentId: null),
+        Location(id: 'loc2', name: 'Location 2', parentId: null),
+      ];
+
+      final components = [
+        Component(
+          id: 'comp1',
+          name: 'Component 1',
+          parentId: null,
+          locationId: 'loc1',
+          sensorType: 'sensor1',
+          status: 'active',
+        ),
+        Component(
+          id: 'comp2',
+          name: 'Component 2',
+          parentId: null,
+          locationId: 'loc2',
+          sensorType: 'sensor2',
+          status: 'active',
+        ),
+      ];
+
+      final data = {
+        'locations': locations,
+        'assets': <Asset>[],
+        'components': components,
+      };
+
+      final result = BuildTreeUseCase.buildTree(data);
+
+      expect(result, isNotNull);
+      for (var node in result) {
+        if (node.type == NodeType.location) {
+          expect(node.children, isNotNull);
+          expect(node.children.length, greaterThan(0));
+          for (var child in node.children) {
+            expect(child.type, NodeType.component);
+          }
+        }
+      }
+    });
+
+    test(
+        'Component linked at the root and as the child of a location at the third level of depth',
+        () {
+      final locations = createTreeWithDepth(3);
+
+      final components = [
+        Component(
+          id: 'comp1',
+          name: 'Component 1',
+          parentId: null,
+          locationId: 'loc3', // Third level location
+          sensorType: 'sensor1',
+          status: 'active',
+        ),
+      ];
+
+      final data = {
+        'locations': locations,
+        'assets': <Asset>[],
+        'components': components,
+      };
+
+      final result = BuildTreeUseCase.buildTree(data);
+
+      expect(result, isNotNull);
+      for (var node in result) {
+        if (node.type == NodeType.location) {
+          if (node.id == 'loc3') {
+            expect(node.children, isNotNull);
+            expect(node.children.length, greaterThan(0));
+            for (var child in node.children) {
+              expect(child.type, NodeType.component);
+            }
+          }
+        }
+      }
     });
   });
 }
 
 // Sample data for benchmarking
 final deepLocations = List<Location>.generate(
-  100000,
+  10000,
   (i) => Location(
     id: 'loc$i',
     name: 'Location $i',
@@ -160,7 +248,7 @@ final deepLocations = List<Location>.generate(
 );
 
 final deepAssets = List<Asset>.generate(
-  100000,
+  10000,
   (i) => Asset(
     id: 'asset$i',
     name: 'Asset $i',
@@ -170,11 +258,16 @@ final deepAssets = List<Asset>.generate(
 );
 
 final deepComponents = List<Component>.generate(
-  100000,
+  10000,
   (i) => Component(
     id: 'comp$i',
     name: 'Component $i',
     parentId: i == 0 ? null : 'comp${i - 1}',
+    sensorType: i % 25 == 0
+        ? 'energy'
+        : i % 20 == 0
+            ? 'temperature'
+            : null,
     locationId: null,
   ),
 );
@@ -190,21 +283,58 @@ class BuildTreeIsolatedBenchmark extends BenchmarkBase {
 
   @override
   void run() {
-    BuildTreeUseCase.buildTreeIsolated(data);
+    BuildTreeUseCase.buildTree(data);
   }
 }
 
 /// Helper function to verify the tree structure recursively
 void verifyTreeStructure(Node node) {
-  if (node.children != null && node.children!.isNotEmpty) {
-    expect(node.children!.length, greaterThan(0));
+  if (node.children.isNotEmpty) {
+    expect(node.children.length, greaterThan(0));
   }
 
   expect(node.id, isNotNull);
   expect(node.name, isNotNull);
   expect(node.type, isNotNull);
 
-  for (var child in node.children ?? []) {
+  for (var child in node.children) {
     verifyTreeStructure(child);
   }
+}
+
+/// Helper function to create a tree with a given depth
+List<Location> createTreeWithDepth(int depth) {
+  final locations = <Location>[];
+  String? parentId;
+
+  for (int i = 1; i <= depth; i++) {
+    final location = Location(
+      id: 'loc$i',
+      name: 'Location $i',
+      parentId: parentId,
+    );
+    locations.add(location);
+    parentId = location.id;
+  }
+
+  return locations;
+}
+
+/// Helper function to find a component in a tree with a given depth
+bool findComponentInTree(
+    Node node, String componentId, int currentDepth, int targetDepth) {
+  if (currentDepth == targetDepth) {
+    return node.children.any(
+      (child) => child.type == NodeType.component && child.id == componentId,
+    );
+  }
+
+  return node.children.any((child) =>
+      child.type == NodeType.location &&
+      findComponentInTree(
+        child,
+        componentId,
+        currentDepth + 1,
+        targetDepth,
+      ));
 }

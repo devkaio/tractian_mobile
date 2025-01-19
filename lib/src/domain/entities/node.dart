@@ -14,7 +14,7 @@ class Node extends Equatable {
   final String? locationId;
   final String? sensorType;
   final String? status;
-  final List<Node>? children;
+  final List<Node> children;
 
   const Node({
     required this.id,

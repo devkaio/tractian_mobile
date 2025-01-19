@@ -1,7 +1,4 @@
 import 'package:bluecapped/bluecapped.dart';
-import 'package:bluecapped/src/tokens/colors/feedback.dart';
-import 'package:bluecapped/src/tokens/colors/neutral.dart';
-import 'package:bluecapped/src/tokens/colors/ui.dart';
 import 'package:flutter/material.dart';
 
 class AppColorsThemeExtension extends ThemeExtension<AppColorsThemeExtension> {

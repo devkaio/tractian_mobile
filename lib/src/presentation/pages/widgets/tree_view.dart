@@ -47,22 +47,26 @@ class TreeTileWidget extends StatelessWidget {
         NodeType.component => Icon(BlueCappedIcons.component),
       };
 
-  Widget get _statusIcon => switch (node.status) {
-        'operating' => Icon(
-            Icons.bolt,
-            color: Colors.amber,
-          ),
-        'alert' => Icon(
-            Icons.circle,
-            size: 8.0,
-            color: Colors.red,
-          ),
-        _ => SizedBox.shrink(),
-      };
+  Widget get _statusIcon {
+    if (node.sensorType == null) return const SizedBox.shrink();
+
+    return switch (node.status) {
+      'operating' => Icon(
+          Icons.bolt,
+          color: Colors.amber,
+        ),
+      'alert' => Icon(
+          Icons.circle,
+          size: 8.0,
+          color: Colors.red,
+        ),
+      _ => SizedBox.shrink(),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (node.children != null && node.children!.isNotEmpty) {
+    if (node.children.isNotEmpty) {
       return ListTileTheme(
         child: ExpansionTile(
           onExpansionChanged: (expanded) {
@@ -93,20 +97,15 @@ class TreeTileWidget extends StatelessWidget {
           childrenPadding: const EdgeInsets.only(left: 16.0),
           key: PageStorageKey(node.id),
           title: Text(node.name),
-          children: node.children!
+          children: node.children
               .mapIndexed((index, e) => Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Flexible(
-                        child: StreamBuilder<AssetState>(
-                          stream: context.read<AssetCubit>().stream,
-                          builder: (context, snapshot) {
-                            return TreeTileWidget(
-                              node: e,
-                              level: level + 1,
-                              index: index,
-                            );
-                          },
+                        child: TreeTileWidget(
+                          node: e,
+                          level: level + 1,
+                          index: index,
                         ),
                       ),
                     ],
