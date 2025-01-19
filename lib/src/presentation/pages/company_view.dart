@@ -38,15 +38,33 @@ class _CompanyViewState extends State<CompanyView> {
               itemCount: companies.length,
               itemBuilder: (context, index) {
                 final company = companies[index];
-                return ListTile(
-                  leading: Icon(Icons.business),
-                  title: Text(company.name),
-                  onTap: () {
-                    Navigator.of(context).pushNamed(
-                      AssetView.routeName,
-                      arguments: company.id,
-                    );
-                  },
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 32,
+                  ),
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 24,
+                      horizontal: 32,
+                    ),
+                    tileColor: Colors.blue,
+                    iconColor: Colors.white,
+                    textColor: Colors.white,
+                    leading: Icon(
+                      Icons.business,
+                    ),
+                    title: Text(company.name),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AssetsView.routeName,
+                        arguments: company.id,
+                      );
+                    },
+                  ),
                 );
               },
             );

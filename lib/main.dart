@@ -52,7 +52,7 @@ class MainApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             CompanyView.routeName: (context) => CompanyView(),
-            AssetView.routeName: (context) {
+            AssetsView.routeName: (context) {
               final companyId =
                   ModalRoute.of(context)?.settings.arguments as String;
 
@@ -63,7 +63,7 @@ class MainApp extends StatelessWidget {
                     locationRepository: context.read<LocationRepositoryImpl>(),
                   ),
                 ),
-                child: AssetView(companyId: companyId),
+                child: AssetsView(companyId: companyId),
               );
             },
           },
