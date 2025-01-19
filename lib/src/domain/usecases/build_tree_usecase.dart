@@ -59,20 +59,24 @@ class BuildTreeUseCase {
     final components = data['components'] as List<Component>;
 
     final nodeMap = <String, Node>{};
+    final childrenMap = <String, List<Node>>{};
 
-    // Create nodes for locations
+    // Create nodes for locations, assets, and components
     for (final location in locations) {
-      nodeMap[location.id] = Node(
+      final node = Node(
         id: location.id,
         name: location.name,
         type: NodeType.location,
         parentId: location.parentId,
       );
+      nodeMap[location.id] = node;
+      if (location.parentId != null) {
+        childrenMap.putIfAbsent(location.parentId!, () => []).add(node);
+      }
     }
 
-    // Create nodes for assets
     for (final asset in assets) {
-      nodeMap[asset.id] = Node(
+      final node = Node(
         id: asset.id,
         name: asset.name,
         type: NodeType.asset,
@@ -81,11 +85,16 @@ class BuildTreeUseCase {
         sensorType: asset.sensorType,
         status: asset.status,
       );
+      nodeMap[asset.id] = node;
+      if (asset.parentId != null) {
+        childrenMap.putIfAbsent(asset.parentId!, () => []).add(node);
+      } else if (asset.locationId != null) {
+        childrenMap.putIfAbsent(asset.locationId!, () => []).add(node);
+      }
     }
 
-    // Create nodes for components
     for (final component in components) {
-      nodeMap[component.id] = Node(
+      final node = Node(
         id: component.id,
         name: component.name,
         type: NodeType.component,
@@ -94,32 +103,64 @@ class BuildTreeUseCase {
         sensorType: component.sensorType,
         status: component.status,
       );
-    }
-
-    // Helper function to build the tree recursively
-    Node? buildTreeRecursive(Node node) {
-      final children = <Node>[];
-      for (var childNode in nodeMap.values) {
-        if (childNode.parentId == node.id || childNode.locationId == node.id) {
-          final child = buildTreeRecursive(childNode);
-          if (child != null) {
-            children.add(child);
-          }
-        }
+      nodeMap[component.id] = node;
+      if (component.parentId != null) {
+        childrenMap.putIfAbsent(component.parentId!, () => []).add(node);
+      } else if (component.locationId != null) {
+        childrenMap.putIfAbsent(component.locationId!, () => []).add(node);
       }
-      return node.copyWith(children: children.isEmpty ? null : children);
     }
 
-    // Build the root nodes
-    final rootNodes = <Node>[];
+    // Helper function to build the tree iteratively using a stack
+    Node buildNode(Node node) {
+      final stack = <Node>[];
+      stack.add(node);
+
+      while (stack.isNotEmpty) {
+        final currentNode = stack.removeLast();
+        final children = childrenMap[currentNode.id] ?? [];
+        final builtChildren = <Node>[];
+
+        for (final child in children) {
+          stack.add(child);
+          builtChildren.add(child.copyWith(children: childrenMap[child.id]));
+        }
+
+        nodeMap[currentNode.id] = currentNode.copyWith(
+          children: builtChildren.isEmpty ? null : builtChildren,
+        );
+      }
+
+      return nodeMap[node.id]!;
+    }
+
+    // Build the root nodes and categorize them
+    final rootNodesWithChildren = <Node>[];
+    final rootNodesWithoutChildren = <Node>[];
+    final unlinkedAssets = <Node>[];
+    final unlinkedComponents = <Node>[];
+
     for (var node in nodeMap.values) {
       if (node.parentId == null && node.locationId == null) {
-        final rootNode = buildTreeRecursive(node);
-        if (rootNode != null) {
-          rootNodes.add(rootNode);
+        final rootNode = buildNode(node);
+        if (rootNode.type == NodeType.asset) {
+          unlinkedAssets.add(rootNode);
+        } else if (rootNode.type == NodeType.component) {
+          unlinkedComponents.add(rootNode);
+        } else if (rootNode.children != null && rootNode.children!.isNotEmpty) {
+          rootNodesWithChildren.add(rootNode);
+        } else {
+          rootNodesWithoutChildren.add(rootNode);
         }
       }
     }
+
+    // Combine the nodes in the desired order
+    final rootNodes = <Node>[];
+    rootNodes.addAll(rootNodesWithChildren);
+    rootNodes.addAll(rootNodesWithoutChildren);
+    rootNodes.addAll(unlinkedAssets);
+    rootNodes.addAll(unlinkedComponents);
 
     return rootNodes;
   }
@@ -137,6 +178,36 @@ class BuildTreeUseCase {
 
       if (node.name.toLowerCase().contains(query.toLowerCase()) ||
           children.isNotEmpty) {
+        filteredNodes.add(
+          Node(
+            id: node.id,
+            name: node.name,
+            type: node.type,
+            parentId: node.parentId,
+            locationId: node.locationId,
+            sensorType: node.sensorType,
+            status: node.status,
+            children: children.isEmpty ? null : children,
+          ),
+        );
+      }
+    }
+
+    return filteredNodes;
+  }
+
+  List<Node> filterByStatus({
+    required List<Node> nodes,
+    required String status,
+  }) {
+    final filteredNodes = <Node>[];
+
+    for (final node in nodes) {
+      final children = node.children != null
+          ? filterByStatus(nodes: node.children!, status: status)
+          : <Node>[];
+
+      if (node.status == status || children.isNotEmpty) {
         filteredNodes.add(
           Node(
             id: node.id,
