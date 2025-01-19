@@ -5,38 +5,55 @@ import 'package:tractian_mobile/src/domain/repositories/company_repository.dart'
 class CompanyCubit extends Cubit<CompanyState> {
   final CompanyRepository _companyRepository;
 
-  CompanyCubit(this._companyRepository) : super(const CompanyStateInitial());
+  CompanyCubit(this._companyRepository) : super(const CompanyState());
 
   Future<void> fetchCompanies() async {
-    emit(CompanyStateLoading());
+    emit(state.copyWith(status: CompanyStateStatus.loading));
     final result = await _companyRepository.getCompanies();
     result.fold(
-      (error) => emit(CompanyStateError(error.message)),
-      (data) => emit(CompanyStateSuccess(data)),
+      (error) => emit(
+        state.copyWith(
+          status: CompanyStateStatus.error,
+          message: error.message,
+        ),
+      ),
+      (data) => emit(
+        state.copyWith(
+          status: CompanyStateStatus.success,
+          companies: data,
+        ),
+      ),
     );
   }
 }
 
-abstract class CompanyState {
-  const CompanyState();
+enum CompanyStateStatus {
+  initial,
+  loading,
+  success,
+  error,
 }
 
-class CompanyStateInitial extends CompanyState {
-  const CompanyStateInitial();
-}
+class CompanyState {
+  const CompanyState({
+    this.status = CompanyStateStatus.initial,
+    this.message = '',
+    this.companies = const [],
+  });
 
-class CompanyStateLoading extends CompanyState {
-  const CompanyStateLoading();
-}
-
-class CompanyStateError extends CompanyState {
+  final CompanyStateStatus status;
   final String message;
+  final List<Company> companies;
 
-  const CompanyStateError(this.message);
-}
-
-class CompanyStateSuccess extends CompanyState {
-  final List<Company> result;
-
-  const CompanyStateSuccess(this.result);
+  CompanyState copyWith({
+    CompanyStateStatus? status,
+    String? message,
+    List<Company>? companies,
+  }) {
+    return CompanyState(
+      status: status ?? this.status,
+      message: message ?? this.message,
+      companies: companies ?? this.companies,
+    );
+  }
 }

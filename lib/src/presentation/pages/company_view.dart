@@ -26,50 +26,63 @@ class _CompanyViewState extends State<CompanyView> {
       appBar: AppBar(title: Text('Companies')),
       body: BlocBuilder<CompanyCubit, CompanyState>(
         builder: (context, state) {
-          if (state is CompanyStateLoading) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state is CompanyStateError) {
-            return Center(
-              child: Text('Error: ${state.message}'),
-            );
-          } else if (state is CompanyStateSuccess) {
-            final companies = state.result;
-            return ListView.builder(
-              itemCount: companies.length,
-              itemBuilder: (context, index) {
-                final company = companies[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 32,
-                  ),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+          switch (state.status) {
+            case CompanyStateStatus.loading:
+              return Center(child: CircularProgressIndicator());
+            case CompanyStateStatus.error:
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 24,
+                    // TODO: update with DS button
+                    ElevatedButton.icon(
+                      onPressed: context.read<CompanyCubit>().fetchCompanies,
+                      label: Text('Try again'),
+                    ),
+                  ],
+                ),
+              );
+            case CompanyStateStatus.success:
+              return ListView.builder(
+                itemCount: state.companies.length,
+                itemBuilder: (context, index) {
+                  final company = state.companies[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
                       horizontal: 32,
                     ),
-                    tileColor: Colors.blue,
-                    iconColor: Colors.white,
-                    textColor: Colors.white,
-                    leading: Icon(
-                      Icons.business,
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 24,
+                        horizontal: 32,
+                      ),
+                      tileColor: Colors.blue,
+                      iconColor: Colors.white,
+                      textColor: Colors.white,
+                      leading: Icon(
+                        Icons.business,
+                      ),
+                      title: Text(company.name),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          AssetsView.routeName,
+                          arguments: company.id,
+                        );
+                      },
                     ),
-                    title: Text(company.name),
-                    onTap: () {
-                      Navigator.of(context).pushNamed(
-                        AssetsView.routeName,
-                        arguments: company.id,
-                      );
-                    },
-                  ),
-                );
-              },
-            );
-          } else {
-            return Center(child: Text('No data'));
+                  );
+                },
+              );
+            default:
+              return Center(child: Text('No data'));
           }
         },
       ),

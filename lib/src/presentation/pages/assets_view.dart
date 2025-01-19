@@ -116,7 +116,24 @@ class _AssetsViewState extends State<AssetsView> {
                   case AssetStateStatus.loading:
                     return Center(child: CircularProgressIndicator());
                   case AssetStateStatus.error:
-                    return Center(child: Text('Error: ${state.message}'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            state.message,
+                            textAlign: TextAlign.center,
+                          ),
+                          // TODO: update with DS button
+                          ElevatedButton.icon(
+                            onPressed: () => context
+                                .read<AssetCubit>()
+                                .fetchAssetTree(widget.companyId),
+                            label: Text('Try again'),
+                          ),
+                        ],
+                      ),
+                    );
                   case AssetStateStatus.success:
                     return TreeView(
                       nodes: state.nodes,

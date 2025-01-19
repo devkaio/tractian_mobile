@@ -18,10 +18,18 @@ class AssetRepositoryImpl implements AssetRepository {
           (response.data as List).map((json) => Asset.fromMap(json)).toList();
       return DataResult.success(assets);
     } on DioException catch (e) {
-      // TODO: manage messages
-      return DataResult.failure(AssetFailure(e.message));
+      if ([
+        DioExceptionType.connectionError,
+        DioExceptionType.sendTimeout,
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.receiveTimeout,
+        DioExceptionType.cancel,
+      ].contains(e.type)) {
+        return DataResult.failure(const NetworkException());
+      }
+      return DataResult.failure(const UnknownFailure());
     } catch (e) {
-      return DataResult.failure(AssetFailure(e.toString()));
+      return DataResult.failure(const AssetFailure());
     }
   }
 }
