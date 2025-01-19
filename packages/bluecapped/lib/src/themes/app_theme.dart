@@ -27,6 +27,13 @@ class BlueCappedTheme {
           ui: _lightData.ui,
         )
       ],
+      inputDecorationTheme: InputDecorationTheme(
+        fillColor: _lightData.neutral.grey200,
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+      ),
     );
   }
 

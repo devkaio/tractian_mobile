@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:bluecapped/bluecapped.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -71,8 +69,6 @@ class _AppWidgetState extends State<AppWidget> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    log('AppWidget didChangeDependencies');
-
     isDarkNotifier.value =
         MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
@@ -86,7 +82,7 @@ class _AppWidgetState extends State<AppWidget> {
             title: 'Tractian Mobile',
             theme: BlueCappedTheme().light,
             darkTheme: BlueCappedTheme().dark,
-            themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
+            themeMode: ThemeMode.system,
             initialRoute: '/',
             routes: {
               CompanyView.routeName: (context) => CompanyView(),

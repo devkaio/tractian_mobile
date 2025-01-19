@@ -24,7 +24,10 @@ class _CompanyViewState extends State<CompanyView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Companies')),
+      appBar: AppBar(
+        title: Text('Companies'),
+        centerTitle: true,
+      ),
       body: BlocBuilder<CompanyCubit, CompanyState>(
         builder: (context, state) {
           switch (state.status) {

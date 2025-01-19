@@ -66,6 +66,7 @@ class TreeTileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // FIXME: fix the expansion when the node is queried
     if (node.children.isNotEmpty) {
       return ListTileTheme(
         child: ExpansionTile(
