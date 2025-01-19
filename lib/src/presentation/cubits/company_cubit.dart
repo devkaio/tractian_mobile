@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tractian_mobile/src/domain/entities/company.dart';
 import 'package:tractian_mobile/src/domain/repositories/company_repository.dart';
@@ -34,7 +35,7 @@ enum CompanyStateStatus {
   error,
 }
 
-class CompanyState {
+class CompanyState extends Equatable {
   const CompanyState({
     this.status = CompanyStateStatus.initial,
     this.message = '',
@@ -56,4 +57,14 @@ class CompanyState {
       companies: companies ?? this.companies,
     );
   }
+
+  @override
+  List<Object?> get props => [
+        status,
+        message,
+        companies,
+      ];
+
+  @override
+  bool? get stringify => true;
 }

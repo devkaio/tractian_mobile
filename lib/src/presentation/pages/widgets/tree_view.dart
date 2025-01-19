@@ -46,6 +46,19 @@ class TreeTileWidget extends StatelessWidget {
         NodeType.component => Icon(Icons.token_outlined),
       };
 
+  Widget get _statusIcon => switch (node.status) {
+        'operating' => Icon(
+            Icons.bolt,
+            color: Colors.amber,
+          ),
+        'alert' => Icon(
+            Icons.circle,
+            size: 8.0,
+            color: Colors.red,
+          ),
+        _ => SizedBox.shrink(),
+      };
+
   @override
   Widget build(BuildContext context) {
     if (node.children != null && node.children!.isNotEmpty) {
@@ -72,10 +85,7 @@ class TreeTileWidget extends StatelessWidget {
                     );
                   }),
               Flexible(child: _leadinIcon),
-              if (node.status == ActiveFilter.energySensor.name)
-                Icon(Icons.bolt),
-              if (node.status == ActiveFilter.criticState.name)
-                Icon(Icons.warning),
+              _statusIcon,
             ],
           ),
           shape: const OutlineInputBorder(borderSide: BorderSide.none),
@@ -110,21 +120,7 @@ class TreeTileWidget extends StatelessWidget {
           spacing: 4.0,
           children: [
             Text(node.name),
-            if (node.status == 'operating')
-              Icon(
-                Icons.bolt,
-                color: Colors.amber,
-              ),
-            if (node.status == 'alert')
-              SizedBox.square(
-                dimension: 8,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+            _statusIcon,
           ],
         ),
       );

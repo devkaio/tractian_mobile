@@ -3,15 +3,17 @@ import 'package:dio/dio.dart';
 class DioClient {
   static final _baseUrl = 'https://fake-api.tractian.com';
 
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: _baseUrl,
-      connectTimeout: Duration(seconds: 5),
-      receiveTimeout: Duration(seconds: 5),
-    ),
-  );
+  final Dio _dio;
 
-  DioClient();
+  DioClient([Dio? client])
+      : _dio = client ??
+            Dio(
+              BaseOptions(
+                baseUrl: _baseUrl,
+                connectTimeout: Duration(seconds: 30),
+                receiveTimeout: Duration(seconds: 30),
+              ),
+            );
 
   Future<Response<T>> get<T>(
     String url, {

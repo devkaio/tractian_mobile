@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tractian_mobile/src/domain/entities/company.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
-import 'package:tractian_mobile/src/domain/repositories/company_repository.dart';
+
+import '../domain_mocks.dart';
 
 void main() {
   group('CompanyRepository', () {
@@ -47,5 +48,3 @@ void main() {
     });
   });
 }
-
-class MockCompanyRepository extends Mock implements CompanyRepository {}

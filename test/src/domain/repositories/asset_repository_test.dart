@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
-import 'package:tractian_mobile/src/domain/repositories/asset_repository.dart';
+
+import '../domain_mocks.dart';
 
 void main() {
   group('AssetRepository', () {
@@ -21,7 +22,6 @@ void main() {
           locationId: null,
           parentId: null,
           sensorType: 'energy',
-          sensorId: 'MTC052',
           status: 'operating',
         ),
       ];
@@ -52,5 +52,3 @@ void main() {
     });
   });
 }
-
-class MockAssetRepository extends Mock implements AssetRepository {}

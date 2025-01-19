@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tractian_mobile/src/domain/entities/location.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
-import 'package:tractian_mobile/src/domain/repositories/location_repository.dart';
+
+import '../domain_mocks.dart';
 
 void main() {
   group('LocationRepository', () {
@@ -45,5 +46,3 @@ void main() {
     });
   });
 }
-
-class MockLocationRepository extends Mock implements LocationRepository {}

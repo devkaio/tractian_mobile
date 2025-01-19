@@ -1,12 +1,99 @@
 import 'package:benchmark_harness/benchmark_harness.dart';
+import 'package:data_result/data_result.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
 import 'package:tractian_mobile/src/domain/entities/component.dart';
 import 'package:tractian_mobile/src/domain/entities/location.dart';
 import 'package:tractian_mobile/src/domain/entities/node.dart';
+import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
 import 'package:tractian_mobile/src/domain/usecases/build_tree_usecase.dart';
 
+import '../domain_mocks.dart';
+
 void main() {
+  late BuildTreeUseCase buildTreeUseCase;
+  late MockAssetRepository mockAssetRepository;
+  late MockLocationRepository mockLocationRepository;
+
+  setUp(() {
+    mockAssetRepository = MockAssetRepository();
+    mockLocationRepository = MockLocationRepository();
+    buildTreeUseCase = BuildTreeUseCase(
+      assetRepository: mockAssetRepository,
+      locationRepository: mockLocationRepository,
+    );
+  });
+
+  group('fetchTreeData', () {
+    test(
+        'should return DataResult.success with tree data when repositories return data',
+        () async {
+      final companyId = 'company1';
+      final assets = [
+        Asset(
+            id: 'asset1', name: 'Asset 1', parentId: null, locationId: 'loc1'),
+        Asset(
+            id: 'asset2',
+            name: 'Asset 2',
+            parentId: 'asset1',
+            locationId: 'loc1'),
+      ];
+      final locations = [
+        Location(id: 'loc1', name: 'Location 1', parentId: null),
+      ];
+
+      when(() => mockAssetRepository.fetchAssets(companyId)).thenAnswer(
+        (_) async => DataResult.success(assets),
+      );
+      when(() => mockLocationRepository.fetchLocations(companyId)).thenAnswer(
+        (_) async => DataResult.success(locations),
+      );
+
+      final result = await buildTreeUseCase.fetchTreeData(companyId);
+
+      expect(result.data, isNotNull);
+      expect(result.data!.length, greaterThan(0));
+
+      for (var rootNode in result.data!) {
+        verifyTreeStructure(rootNode);
+      }
+    });
+
+    test(
+        'should return DataResult.failure when asset repository returns an error',
+        () async {
+      final companyId = 'company1';
+      final error = AssetFailure('Error fetching assets');
+      when(() => mockAssetRepository.fetchAssets(companyId))
+          .thenAnswer((_) async => DataResult.failure(error));
+      when(() => mockLocationRepository.fetchLocations(companyId))
+          .thenAnswer((_) async => DataResult.success([]));
+
+      final result = await buildTreeUseCase.fetchTreeData(companyId);
+
+      expect(result.error, isNotNull);
+      expect(result.data, isNull);
+      expect(result.error!.message, error.message);
+    });
+
+    test(
+        'should return DataResult.failure when location repository returns an error',
+        () async {
+      final companyId = 'company1';
+      final error = LocationFailure('Error fetching locations');
+      when(() => mockAssetRepository.fetchAssets(companyId))
+          .thenAnswer((_) async => DataResult.success([]));
+      when(() => mockLocationRepository.fetchLocations(companyId))
+          .thenAnswer((_) async => DataResult.failure(error));
+
+      final result = await buildTreeUseCase.fetchTreeData(companyId);
+
+      expect(result.error, isNotNull);
+      expect(result.data, isNull);
+      expect(result.error!.message, error.message);
+    });
+  });
   group('BuildTreeIsolated', () {
     test('should build tree correctly with given data', () {
       // Sample data for testing
@@ -45,13 +132,11 @@ void main() {
         'components': components,
       };
 
-      // Call the static method
       final result = BuildTreeUseCase.buildTreeIsolated(data);
 
-      // Verify the result
       expect(result, isNotNull);
       expect(result.length, greaterThan(0));
-      // Verify the structure of the tree
+
       for (var rootNode in result) {
         verifyTreeStructure(rootNode);
       }
