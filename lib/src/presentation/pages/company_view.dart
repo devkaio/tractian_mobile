@@ -1,3 +1,4 @@
+import 'package:bluecapped/bluecapped.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tractian_mobile/src/presentation/cubits/company_cubit.dart';
@@ -64,11 +65,11 @@ class _CompanyViewState extends State<CompanyView> {
                         vertical: 24,
                         horizontal: 32,
                       ),
-                      tileColor: Colors.blue,
+                      tileColor: context.appColors.primary.blue,
                       iconColor: Colors.white,
                       textColor: Colors.white,
                       leading: Icon(
-                        Icons.business,
+                        BlueCappedIcons.unit,
                       ),
                       title: Text(company.name),
                       onTap: () {

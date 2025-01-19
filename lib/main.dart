@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:bluecapped/bluecapped.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tractian_mobile/src/data/api/dio_client.dart';
@@ -47,28 +50,65 @@ class MainApp extends StatelessWidget {
               ..fetchCompanies(),
           ),
         ],
-        child: MaterialApp(
-          title: 'Tractian Mobile',
-          initialRoute: '/',
-          routes: {
-            CompanyView.routeName: (context) => CompanyView(),
-            AssetsView.routeName: (context) {
-              final companyId =
-                  ModalRoute.of(context)?.settings.arguments as String;
-
-              return BlocProvider(
-                create: (context) => AssetCubit(
-                  BuildTreeUseCase(
-                    assetRepository: context.read<AssetRepository>(),
-                    locationRepository: context.read<LocationRepositoryImpl>(),
-                  ),
-                ),
-                child: AssetsView(companyId: companyId),
-              );
-            },
-          },
-        ),
+        child: AppWidget(),
       ),
     );
+  }
+}
+
+class AppWidget extends StatefulWidget {
+  const AppWidget({
+    super.key,
+  });
+
+  @override
+  State<AppWidget> createState() => _AppWidgetState();
+}
+
+class _AppWidgetState extends State<AppWidget> {
+  final ValueNotifier<bool> isDarkNotifier = ValueNotifier(false);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    log('AppWidget didChangeDependencies');
+
+    isDarkNotifier.value =
+        MediaQuery.of(context).platformBrightness == Brightness.dark;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+        valueListenable: isDarkNotifier,
+        builder: (context, darkMode, child) {
+          child = MaterialApp(
+            title: 'Tractian Mobile',
+            theme: BlueCappedTheme().light,
+            darkTheme: BlueCappedTheme().dark,
+            themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
+            initialRoute: '/',
+            routes: {
+              CompanyView.routeName: (context) => CompanyView(),
+              AssetsView.routeName: (context) {
+                final companyId =
+                    ModalRoute.of(context)?.settings.arguments as String;
+
+                return BlocProvider(
+                  create: (context) => AssetCubit(
+                    BuildTreeUseCase(
+                      assetRepository: context.read<AssetRepository>(),
+                      locationRepository:
+                          context.read<LocationRepositoryImpl>(),
+                    ),
+                  ),
+                  child: AssetsView(companyId: companyId),
+                );
+              },
+            },
+          );
+
+          return child;
+        });
   }
 }

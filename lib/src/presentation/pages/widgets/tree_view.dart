@@ -1,3 +1,4 @@
+import 'package:bluecapped/bluecapped.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,9 +42,9 @@ class TreeTileWidget extends StatelessWidget {
   final int index;
 
   Icon get _leadinIcon => switch (node.type) {
-        NodeType.location => Icon(Icons.location_on_outlined),
-        NodeType.asset => Icon(Icons.token),
-        NodeType.component => Icon(Icons.token_outlined),
+        NodeType.location => Icon(BlueCappedIcons.location),
+        NodeType.asset => Icon(BlueCappedIcons.asset),
+        NodeType.component => Icon(BlueCappedIcons.component),
       };
 
   Widget get _statusIcon => switch (node.status) {
