@@ -62,6 +62,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.7"
+  bluecapped:
+    dependency: "direct main"
+    description:
+      path: "packages/bluecapped"
+      relative: true
+    source: path
+    version: "0.0.1"
   boolean_selector:
     dependency: transitive
     description:
