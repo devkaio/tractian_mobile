@@ -20,6 +20,10 @@ abstract class DataResult<S> {
     T Function(Failure error) fnFailure,
     T Function(S data) fnData,
   );
+
+  bool get isSuccess;
+
+  bool get isFailure;
 }
 
 class _SuccessResult<S> extends DataResult<S> {
@@ -33,6 +37,12 @@ class _SuccessResult<S> extends DataResult<S> {
   ) {
     return fnData(_value);
   }
+
+  @override
+  bool get isFailure => false;
+
+  @override
+  bool get isSuccess => true;
 }
 
 class _FailureResult<S> extends DataResult<S> {
@@ -47,4 +57,10 @@ class _FailureResult<S> extends DataResult<S> {
   ) {
     return fnFailure(_value);
   }
+
+  @override
+  bool get isSuccess => false;
+
+  @override
+  bool get isFailure => true;
 }

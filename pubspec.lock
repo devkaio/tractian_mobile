@@ -39,7 +39,7 @@ packages:
     source: hosted
     version: "2.11.0"
   benchmark_harness:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: benchmark_harness
       sha256: "83f65107165883ba8623eb822daacb23dcf9f795c66841de758c9dd7c5a0cf28"
@@ -118,13 +118,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
-  data_result:
-    dependency: "direct main"
-    description:
-      path: "packages/data_result"
-      relative: true
-    source: path
-    version: "0.0.1"
   diff_match_patch:
     dependency: transitive
     description:

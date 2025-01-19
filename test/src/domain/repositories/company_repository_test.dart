@@ -1,6 +1,6 @@
-import 'package:data_result/data_result.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/domain/entities/company.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';
 

@@ -1,5 +1,5 @@
-import 'package:data_result/data_result.dart';
 import 'package:flutter/foundation.dart';
+import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
 import 'package:tractian_mobile/src/domain/entities/component.dart';
 import 'package:tractian_mobile/src/domain/entities/location.dart';

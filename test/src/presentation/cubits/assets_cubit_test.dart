@@ -1,7 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:data_result/data_result.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/domain/entities/node.dart';
 import 'package:tractian_mobile/src/domain/failures/failure_messages.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';

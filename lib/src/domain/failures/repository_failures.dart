@@ -1,4 +1,4 @@
-import 'package:data_result/data_result.dart';
+import 'package:tractian_mobile/src/core/data_result/failure.dart';
 import 'package:tractian_mobile/src/domain/failures/failure_messages.dart';
 
 class UnknownFailure extends Failure {

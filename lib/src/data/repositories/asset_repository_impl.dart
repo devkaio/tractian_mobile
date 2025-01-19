@@ -1,5 +1,5 @@
-import 'package:data_result/data_result.dart';
 import 'package:dio/dio.dart';
+import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/data/api/dio_client.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
 import 'package:tractian_mobile/src/domain/failures/repository_failures.dart';

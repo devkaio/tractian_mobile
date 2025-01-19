@@ -1,4 +1,4 @@
-import 'package:data_result/data_result.dart';
+import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/domain/entities/location.dart';
 
 abstract class LocationRepository {
