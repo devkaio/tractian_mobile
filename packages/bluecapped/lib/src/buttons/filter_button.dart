@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class BCFilterButton extends StatelessWidget {
   const BCFilterButton.withIcon({
     super.key,
-    this.active = false,
+    this.active = true,
     required this.onPressed,
     required this.icon,
     required this.label,

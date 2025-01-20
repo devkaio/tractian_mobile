@@ -11,8 +11,8 @@ class PrimaryColors {
 
   // TODO: set dark colors
   const PrimaryColors.dark()
-      : blue = const Color.fromARGB(255, 50, 51, 51),
-        blue2 = const Color.fromARGB(255, 153, 157, 161);
+      : blue = const Color(0xFF2188FF),
+        blue2 = const Color(0xFF2188FF);
 
   final Color blue, blue2;
 }

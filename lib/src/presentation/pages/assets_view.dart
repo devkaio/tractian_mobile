@@ -27,14 +27,7 @@ class _AssetsViewState extends State<AssetsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Assets'),
-        centerTitle: true,
-      ),
+      appBar: BCTopAppbar(title: 'Assets'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -101,12 +94,15 @@ class _AssetsViewState extends State<AssetsView> {
                               state.message,
                               textAlign: TextAlign.center,
                             ),
-                            // TODO: update with DS button
-                            ElevatedButton.icon(
+                            BCFilterButton.withIcon(
                               onPressed: () => context
                                   .read<AssetCubit>()
                                   .fetchAssetTree(widget.companyId),
-                              label: Text('Try again'),
+                              icon: Icon(
+                                Icons.refresh,
+                                color: context.appColors.neutral.grey200,
+                              ),
+                              label: 'Try again',
                             ),
                           ],
                         ),

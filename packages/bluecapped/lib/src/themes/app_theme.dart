@@ -16,6 +16,11 @@ class BlueCappedTheme {
   final AppColors _lightData;
   final AppColors _darkData;
 
+  InputBorder get _inputBorder => OutlineInputBorder(
+        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(8.0),
+      );
+
   ThemeData get light {
     return ThemeData(
       useMaterial3: true,
@@ -29,10 +34,7 @@ class BlueCappedTheme {
       ],
       inputDecorationTheme: InputDecorationTheme(
         fillColor: _lightData.neutral.grey200,
-        border: OutlineInputBorder(
-          borderSide: BorderSide.none,
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        border: _inputBorder,
       ),
     );
   }
@@ -48,6 +50,10 @@ class BlueCappedTheme {
           ui: _darkData.ui,
         )
       ],
+      inputDecorationTheme: InputDecorationTheme(
+        fillColor: _lightData.neutral.grey200,
+        border: _inputBorder,
+      ),
     );
   }
 }

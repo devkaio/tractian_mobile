@@ -39,4 +39,6 @@ class BlueCappedIcons {
       IconData(0xe805, fontFamily: _kFontFam, fontPackage: _kFontPkg);
   static const IconData unit =
       IconData(0xe806, fontFamily: _kFontFam, fontPackage: _kFontPkg);
+  static const IconData company_logo =
+      IconData(0xe807, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }

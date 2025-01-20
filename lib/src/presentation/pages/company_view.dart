@@ -24,10 +24,7 @@ class _CompanyViewState extends State<CompanyView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Companies'),
-        centerTitle: true,
-      ),
+      appBar: BCTopAppbar(showLeading: false),
       body: BlocBuilder<CompanyCubit, CompanyState>(
         builder: (context, state) {
           switch (state.status) {
@@ -42,10 +39,13 @@ class _CompanyViewState extends State<CompanyView> {
                       state.message,
                       textAlign: TextAlign.center,
                     ),
-                    // TODO: update with DS button
-                    ElevatedButton.icon(
+                    BCFilterButton.withIcon(
                       onPressed: context.read<CompanyCubit>().fetchCompanies,
-                      label: Text('Try again'),
+                      icon: Icon(
+                        Icons.refresh,
+                        color: context.appColors.neutral.grey200,
+                      ),
+                      label: 'Try again',
                     ),
                   ],
                 ),
