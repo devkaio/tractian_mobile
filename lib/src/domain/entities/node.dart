@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 enum NodeType {
   component,
@@ -6,17 +6,35 @@ enum NodeType {
   asset,
 }
 
-class Node extends Equatable {
+enum NodeStatus {
+  operating,
+  alert,
+}
+
+enum NodeSensorType {
+  energy,
+  vibration,
+}
+
+class Node {
   final String id;
   final String name;
-  final NodeType type;
+  final NodeType? type;
   final String? parentId;
   final String? locationId;
-  final String? sensorType;
-  final String? status;
+  final NodeSensorType? sensorType;
+  final NodeStatus? status;
   final List<Node> children;
 
-  const Node({
+  bool _expanded = false;
+
+  bool get expanded => _expanded;
+
+  void updateExpansionStatus(bool value) {
+    _expanded = value;
+  }
+
+  Node({
     required this.id,
     required this.name,
     required this.type,
@@ -27,20 +45,7 @@ class Node extends Equatable {
     this.children = const [],
   });
 
-  @override
-  List<Object?> get props => [
-        id,
-        name,
-        parentId,
-        locationId,
-        type,
-        sensorType,
-        status,
-        children,
-      ];
-
-  @override
-  bool? get stringify => true;
+  bool get isRoot => parentId == null && locationId == null;
 
   Node copyWith({
     String? id,
@@ -48,10 +53,14 @@ class Node extends Equatable {
     NodeType? type,
     String? parentId,
     String? locationId,
-    String? sensorType,
-    String? status,
+    NodeSensorType? sensorType,
+    NodeStatus? status,
     List<Node>? children,
+    bool? expanded,
+    bool? isFiltered,
   }) {
+    _expanded = expanded ?? this.expanded;
+
     return Node(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -62,5 +71,38 @@ class Node extends Equatable {
       status: status ?? this.status,
       children: children ?? this.children,
     );
+  }
+
+  @override
+  bool operator ==(covariant Node other) {
+    if (identical(this, other)) return true;
+
+    return other.id == id &&
+        other.name == name &&
+        other.type == type &&
+        other.parentId == parentId &&
+        other.locationId == locationId &&
+        other.sensorType == sensorType &&
+        other.status == status &&
+        listEquals(other.children, children) &&
+        other.expanded == expanded;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        name.hashCode ^
+        type.hashCode ^
+        parentId.hashCode ^
+        locationId.hashCode ^
+        sensorType.hashCode ^
+        status.hashCode ^
+        children.hashCode ^
+        expanded.hashCode;
+  }
+
+  @override
+  String toString() {
+    return 'Node(id: $id, name: $name, type: $type, parentId: $parentId, locationId: $locationId, sensorType: $sensorType, status: $status, children: $children, _expanded: $_expanded)';
   }
 }

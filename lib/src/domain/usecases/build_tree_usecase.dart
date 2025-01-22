@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tractian_mobile/src/core/data_result/data_result.dart';
 import 'package:tractian_mobile/src/domain/entities/asset.dart';
@@ -84,8 +85,12 @@ class BuildTreeUseCase {
         type: NodeType.asset,
         parentId: asset.parentId,
         locationId: asset.locationId,
-        sensorType: asset.sensorType,
-        status: asset.status,
+        sensorType: NodeSensorType.values.firstWhereOrNull(
+          (e) => e.name == asset.sensorType,
+        ),
+        status: NodeStatus.values.firstWhereOrNull(
+          (e) => e.name == asset.status,
+        ),
       );
       nodeMap[asset.id] = node;
       if (asset.parentId != null) {
@@ -102,8 +107,12 @@ class BuildTreeUseCase {
         type: NodeType.component,
         parentId: component.parentId,
         locationId: component.locationId,
-        sensorType: component.sensorType,
-        status: component.status,
+        sensorType: NodeSensorType.values.firstWhereOrNull(
+          (e) => e.name == component.sensorType,
+        ),
+        status: NodeStatus.values.firstWhereOrNull(
+          (e) => e.name == component.status,
+        ),
       );
       nodeMap[component.id] = node;
       if (component.parentId != null) {
@@ -137,7 +146,6 @@ class BuildTreeUseCase {
 
         return nodeMap[node.id]!;
       } else {
-        // Use recursion for shallower levels
         final children = childrenMap[node.id] ?? [];
         final builtChildren =
             children.map((child) => buildSubtree(child, depth + 1)).toList();
@@ -174,59 +182,82 @@ class BuildTreeUseCase {
     return rootNodes;
   }
 
-  List<Node> filterTreeData({
-    required List<Node> nodes,
-    String query = '',
-  }) {
-    final filteredNodes = <Node>[];
+  static List<Node> filterTree(Map<String, dynamic> filterCriteria) {
+    final nodes = filterCriteria['nodes'] as List<Node>;
+    final query = filterCriteria['query'] as String?;
+    final status = filterCriteria['status'] as NodeStatus?;
+    final sensorType = filterCriteria['sensorType'] as NodeSensorType?;
+
+    bool matchesFilterCriteria(Node node) {
+      if (status != null && node.status != status) {
+        return false;
+      }
+      if (sensorType != null && node.sensorType != sensorType) {
+        return false;
+      }
+      if (query != null &&
+          query.isNotEmpty &&
+          !node.name.toLowerCase().contains(query.toLowerCase())) {
+        return false;
+      }
+      return true;
+    }
+
+    Node? traverse(Node node) {
+      bool isNodeFiltered = matchesFilterCriteria(node);
+      List<Node> filteredChildren = [];
+
+      for (final child in node.children) {
+        final filteredChild = traverse(child);
+        if (filteredChild != null) {
+          filteredChildren.add(filteredChild);
+          isNodeFiltered = true;
+        }
+      }
+
+      if (isNodeFiltered) {
+        return Node(
+          id: node.id,
+          name: node.name,
+          type: node.type,
+          sensorType: node.sensorType,
+          status: node.status,
+          children: filteredChildren,
+          parentId: node.parentId,
+        );
+      }
+
+      return null;
+    }
+
+    List<Node> filteredNodes = [];
 
     for (final node in nodes) {
-      final children = filterTreeData(nodes: node.children, query: query);
-
-      if (node.name.toLowerCase().contains(query.toLowerCase()) ||
-          children.isNotEmpty) {
-        filteredNodes.add(
-          Node(
-            id: node.id,
-            name: node.name,
-            type: node.type,
-            parentId: node.parentId,
-            locationId: node.locationId,
-            sensorType: node.sensorType,
-            status: node.status,
-            children: children,
-          ),
-        );
+      final filteredNode = traverse(node);
+      if (filteredNode != null) {
+        filteredNodes.add(filteredNode);
       }
     }
 
     return filteredNodes;
   }
 
-  List<Node> filterByStatus({
+  Future<List<Node>> filterTreeData({
     required List<Node> nodes,
-    required String status,
-  }) {
-    final filteredNodes = <Node>[];
+    String? query,
+    NodeStatus? status,
+    NodeSensorType? sensorType,
+  }) async {
+    // use isolate to compute the filtered tree
 
-    for (final node in nodes) {
-      final children = filterByStatus(nodes: node.children, status: status);
+    final nodeMap = {
+      'nodes': nodes,
+      'query': query,
+      'status': status,
+      'sensorType': sensorType,
+    };
 
-      if (node.status == status || children.isNotEmpty) {
-        filteredNodes.add(
-          Node(
-            id: node.id,
-            name: node.name,
-            type: node.type,
-            parentId: node.parentId,
-            locationId: node.locationId,
-            sensorType: node.sensorType,
-            status: node.status,
-            children: children,
-          ),
-        );
-      }
-    }
+    final filteredNodes = await compute(filterTree, nodeMap);
 
     return filteredNodes;
   }
