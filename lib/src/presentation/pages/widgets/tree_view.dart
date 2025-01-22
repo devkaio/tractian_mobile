@@ -1,9 +1,6 @@
 import 'package:bluecapped/bluecapped.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tractian_mobile/src/domain/entities/node.dart';
-import 'package:tractian_mobile/src/presentation/cubits/assets_cubit.dart';
 
 class TreeView extends StatelessWidget {
   final List<Node> nodes;
@@ -45,17 +42,18 @@ class TreeTileWidget extends StatelessWidget {
         NodeType.location => Icon(BlueCappedIcons.location),
         NodeType.asset => Icon(BlueCappedIcons.asset),
         NodeType.component => Icon(BlueCappedIcons.component),
+        _ => Icon(Icons.error),
       };
 
   Widget get _statusIcon {
     if (node.sensorType == null) return const SizedBox.shrink();
 
     return switch (node.status) {
-      'operating' => Icon(
+      NodeStatus.operating => Icon(
           Icons.bolt,
           color: Colors.amber,
         ),
-      'alert' => Icon(
+      NodeStatus.alert => Icon(
           Icons.circle,
           size: 8.0,
           color: Colors.red,
@@ -66,65 +64,52 @@ class TreeTileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FIXME: fix the expansion when the node is queried
-    if (node.children.isNotEmpty) {
-      return ListTileTheme(
-        child: ExpansionTile(
-          onExpansionChanged: (expanded) {
-            context.read<AssetCubit>().onExpandedToggled(
-                  nodeId: node.id,
-                  isExpanded: expanded,
-                );
-          },
-          controlAffinity: ListTileControlAffinity.trailing,
-          showTrailingIcon: false,
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BlocSelector<AssetCubit, AssetState, bool>(
-                  selector: (state) => state.expandedNodeIds.contains(node.id),
-                  builder: (context, state) {
-                    return Icon(
-                      state
-                          ? Icons.keyboard_arrow_down_outlined
-                          : Icons.keyboard_arrow_right_outlined,
-                    );
-                  }),
-              Flexible(child: _leadinIcon),
-              _statusIcon,
-            ],
-          ),
-          shape: const OutlineInputBorder(borderSide: BorderSide.none),
-          childrenPadding: const EdgeInsets.only(left: 16.0),
-          key: PageStorageKey(node.id),
-          title: Text(node.name),
-          children: node.children
-              .mapIndexed((index, e) => Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flexible(
-                        child: TreeTileWidget(
-                          node: e,
-                          level: level + 1,
-                          index: index,
-                        ),
-                      ),
-                    ],
-                  ))
-              .toList(),
-        ),
-      );
-    } else {
-      return ListTile(
-        leading: _leadinIcon,
-        title: Row(
-          spacing: 4.0,
+    return InkWell(
+      onTap: node.children.isEmpty
+          ? null
+          : () {
+              node.updateExpansionStatus(!node.expanded);
+              (context as Element).markNeedsBuild();
+            },
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 2.0),
+        child: Column(
           children: [
-            Text(node.name),
-            _statusIcon,
+            Row(
+              children: [
+                if (node.children.isNotEmpty)
+                  Icon(
+                    node.expanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    color: context.appColors.ui.platformHeader,
+                  ),
+                if (node.children.isEmpty) const SizedBox(width: 24.0),
+                _leadinIcon,
+                Flexible(
+                    child: Padding(
+                  padding: EdgeInsets.only(left: 4.0),
+                  child: Text(node.name),
+                )),
+                Padding(
+                  padding: EdgeInsets.only(left: 4.0),
+                  child: _statusIcon,
+                ),
+              ],
+            ),
+            if (node.expanded)
+              for (final child in node.children)
+                Padding(
+                  padding: EdgeInsets.only(left: 24),
+                  child: TreeTileWidget(
+                    node: child,
+                    level: level + 1,
+                    index: index,
+                  ),
+                ),
           ],
         ),
-      );
-    }
+      ),
+    );
   }
 }

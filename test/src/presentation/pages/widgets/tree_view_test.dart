@@ -20,14 +20,14 @@ void main() {
           id: '1',
           name: 'Node 1',
           type: NodeType.location,
-          status: 'operating',
+          status: NodeStatus.operating,
           children: [
             Node(
               id: '1-1',
               name: 'Node 1-1',
               type: NodeType.asset,
-              sensorType: 'energy',
-              status: 'alert',
+              sensorType: NodeSensorType.energy,
+              status: NodeStatus.alert,
               children: [],
             ),
           ],
@@ -36,8 +36,8 @@ void main() {
           id: '2',
           name: 'Node 2',
           type: NodeType.component,
-          status: 'operating',
-          sensorType: 'energy',
+          status: NodeStatus.operating,
+          sensorType: NodeSensorType.energy,
           children: [],
         ),
       ];
@@ -51,6 +51,8 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: BlueCappedTheme().light,
+          darkTheme: BlueCappedTheme().dark,
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,
@@ -70,6 +72,8 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: BlueCappedTheme().light,
+          darkTheme: BlueCappedTheme().dark,
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,
@@ -96,6 +100,8 @@ void main() {
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: BlueCappedTheme().light,
+          darkTheme: BlueCappedTheme().dark,
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:async/async.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +18,6 @@ enum AssetStateStatus {
   initial,
   loading,
   success,
-  filtered,
   error;
 }
 
@@ -27,7 +28,6 @@ class AssetState extends Equatable {
     this.status = AssetStateStatus.initial,
     this.activeFilter = ActiveFilter.none,
     this.message = '',
-    this.expandedNodeIds = const {},
   });
 
   final List<Node> nodes;
@@ -35,7 +35,6 @@ class AssetState extends Equatable {
   final AssetStateStatus status;
   final ActiveFilter activeFilter;
   final String message;
-  final Set<String> expandedNodeIds;
 
   AssetState copyWith({
     List<Node>? nodes,
@@ -43,7 +42,6 @@ class AssetState extends Equatable {
     ActiveFilter? activeFilter,
     AssetStateStatus? status,
     String? message,
-    Set<String>? expandedNodeIds,
   }) {
     return AssetState(
       nodes: nodes ?? this.nodes,
@@ -51,7 +49,6 @@ class AssetState extends Equatable {
       activeFilter: activeFilter ?? this.activeFilter,
       status: status ?? this.status,
       message: message ?? this.message,
-      expandedNodeIds: expandedNodeIds ?? this.expandedNodeIds,
     );
   }
 
@@ -62,7 +59,6 @@ class AssetState extends Equatable {
         status,
         activeFilter,
         message,
-        expandedNodeIds,
       ];
 
   @override
@@ -72,19 +68,24 @@ class AssetState extends Equatable {
 class AssetCubit extends Cubit<AssetState> {
   final BuildTreeUseCase buildTreeUseCase;
   CancelableOperation<DataResult<List<Node>>>? _fetchTreeDataOperation;
+  CancelableOperation<List<Node>>? _filterByTextOperation;
+  CancelableOperation<List<Node>>? _filterByEnergySensorOperation;
+  CancelableOperation<List<Node>>? _filterByCriticStateOperation;
+
+  Timer? _debounceTimer;
 
   AssetCubit(this.buildTreeUseCase) : super(const AssetState());
 
-  void onExpandedToggled({required String nodeId, required bool isExpanded}) {
-    final expandedNodeIds = Set.of(state.expandedNodeIds);
-
-    if (isExpanded) {
-      expandedNodeIds.add(nodeId);
+  void onExpandedToggled(Node node) {
+    if (node.expanded) {
+      node.updateExpansionStatus(false);
     } else {
-      expandedNodeIds.remove(nodeId);
+      node.updateExpansionStatus(true);
     }
 
-    emit(state.copyWith(expandedNodeIds: expandedNodeIds));
+    emit(
+      state.copyWith(nodes: state.nodes),
+    );
   }
 
   Future<void> fetchAssetTree(String companyId) async {
@@ -103,7 +104,8 @@ class AssetCubit extends Cubit<AssetState> {
       },
     );
 
-    final result = await _fetchTreeDataOperation!.valueOrCancellation();
+    final result = await _fetchTreeDataOperation!
+        .valueOrCancellation(DataResult.success([]));
 
     result?.fold(
       (error) {
@@ -123,78 +125,118 @@ class AssetCubit extends Cubit<AssetState> {
     );
   }
 
-  Future<void> filterByText({String query = ''}) async {
+  void onTextQuery([String query = '']) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _filterByText(query);
+    });
+  }
+
+  Future<void> _filterByText([String query = '']) async {
+    emit(state.copyWith(status: AssetStateStatus.loading));
+
     if (query.isEmpty) {
       return emit(
         state.copyWith(
           filteredNodes: [],
           status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.none,
+          activeFilter: ActiveFilter.text,
         ),
       );
     }
 
-    final filteredNodes = buildTreeUseCase.filterTreeData(
-      nodes: state.nodes,
-      query: query,
+    _filterByTextOperation?.cancel();
+
+    _filterByTextOperation = CancelableOperation.fromFuture(
+      buildTreeUseCase.filterTreeData(
+        nodes: state.nodes,
+        query: query,
+      ),
+      onCancel: () {
+        return;
+      },
     );
+
+    final filteredNodes = await _filterByTextOperation?.valueOrCancellation([]);
 
     emit(
       state.copyWith(
         filteredNodes: filteredNodes,
-        status: AssetStateStatus.filtered,
+        status: AssetStateStatus.success,
         activeFilter: ActiveFilter.text,
       ),
     );
   }
 
   Future<void> onFilterByEnergySensorTapped() async {
+    emit(state.copyWith(status: AssetStateStatus.loading));
+
     if (state.activeFilter == ActiveFilter.none ||
         state.activeFilter == ActiveFilter.criticState) {
-      final filteredNodes = buildTreeUseCase.filterByStatus(
-        nodes: state.nodes,
-        status: 'operating',
+      _filterByEnergySensorOperation?.cancel();
+
+      _filterByEnergySensorOperation = CancelableOperation.fromFuture(
+        buildTreeUseCase.filterTreeData(
+          nodes: state.nodes,
+          sensorType: NodeSensorType.energy,
+        ),
+        onCancel: () {
+          return;
+        },
       );
+
+      final filteredNodes =
+          await _filterByEnergySensorOperation?.valueOrCancellation([]);
 
       return emit(
         state.copyWith(
           filteredNodes: filteredNodes,
-          status: AssetStateStatus.filtered,
+          status: AssetStateStatus.success,
           activeFilter: ActiveFilter.energySensor,
         ),
       );
     } else {
-      emit(
+      return emit(
         state.copyWith(
           filteredNodes: [],
           status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.none,
         ),
       );
     }
   }
 
   Future<void> onFilterByCriticStateTapped() async {
+    emit(state.copyWith(status: AssetStateStatus.loading));
+
     if (state.activeFilter == ActiveFilter.none ||
         state.activeFilter == ActiveFilter.energySensor) {
-      final filteredNodes = buildTreeUseCase.filterByStatus(
-        nodes: state.nodes,
-        status: 'alert',
+      _filterByCriticStateOperation?.cancel();
+
+      _filterByCriticStateOperation = CancelableOperation.fromFuture(
+        buildTreeUseCase.filterTreeData(
+          nodes: state.nodes,
+          status: NodeStatus.alert,
+        ),
+        onCancel: () {
+          return;
+        },
       );
+
+      final filteredNodes =
+          await _filterByCriticStateOperation?.valueOrCancellation([]);
 
       return emit(
         state.copyWith(
           filteredNodes: filteredNodes,
-          status: AssetStateStatus.filtered,
+          status: AssetStateStatus.success,
           activeFilter: ActiveFilter.criticState,
         ),
       );
     } else {
-      emit(
+      return emit(
         state.copyWith(
           filteredNodes: [],
           status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.none,
         ),
       );
     }
@@ -203,6 +245,8 @@ class AssetCubit extends Cubit<AssetState> {
   @override
   Future<void> close() {
     _fetchTreeDataOperation?.cancel();
+    _filterByTextOperation?.cancel();
+    _filterByEnergySensorOperation?.cancel();
     return super.close();
   }
 }

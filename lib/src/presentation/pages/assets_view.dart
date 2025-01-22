@@ -27,6 +27,7 @@ class _AssetsViewState extends State<AssetsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: BCTopAppbar(title: 'Assets'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -34,20 +35,9 @@ class _AssetsViewState extends State<AssetsView> {
           mainAxisSize: MainAxisSize.min,
           spacing: 8.0,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.all(16.0),
-                filled: true,
-                hintText: 'Buscar Ativo ou Local',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onTapOutside: (_) => FocusScope.of(context).unfocus(),
-              onChanged: (query) {
-                context.read<AssetCubit>().filterByText(query: query);
-              },
-            ),
+            BCTextField(onChanged: context.read<AssetCubit>().onTextQuery),
             Row(
-              spacing: 16.0,
+              spacing: 8.0,
               children: [
                 BlocSelector<AssetCubit, AssetState, bool>(
                   selector: (state) =>
@@ -79,7 +69,7 @@ class _AssetsViewState extends State<AssetsView> {
                 ),
               ],
             ),
-            Flexible(
+            Expanded(
               child: BlocBuilder<AssetCubit, AssetState>(
                 builder: (context, state) {
                   switch (state.status) {
@@ -108,13 +98,15 @@ class _AssetsViewState extends State<AssetsView> {
                         ),
                       );
                     case AssetStateStatus.success:
-                      return TreeView(
-                        nodes: state.nodes,
-                      );
-                    case AssetStateStatus.filtered:
-                      return TreeView(
-                        nodes: state.filteredNodes,
-                      );
+                      final nodes = state.activeFilter != ActiveFilter.none
+                          ? state.filteredNodes
+                          : state.nodes;
+                      if (nodes.isEmpty) {
+                        return Center(
+                            child: Text(
+                                'Nenhum ativo encontrado. Tente outro filtro.'));
+                      }
+                      return TreeView(nodes: nodes);
                     default:
                       return Center(child: Text('No data'));
                   }

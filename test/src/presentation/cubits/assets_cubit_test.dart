@@ -67,21 +67,32 @@ void main() {
     blocTest<AssetCubit, AssetState>(
       'emits [filtered] when filterByText is called with a non-empty query',
       build: () {
-        when(() => mockBuildTreeUseCase.filterTreeData(
-                nodes: any(named: 'nodes'), query: any(named: 'query')))
-            .thenReturn(
-                [Node(id: '4', name: 'Filtered Node', type: NodeType.asset)]);
+        when(
+          () => mockBuildTreeUseCase.filterTreeData(
+            nodes: any(named: 'nodes'),
+            query: 'Asset',
+          ),
+        ).thenAnswer(
+          (_) => Future.value(
+            [Node(id: '4', name: 'Asset Node', type: NodeType.asset)],
+          ),
+        );
         return assetCubit;
       },
       seed: () => AssetState(nodes: [locationNode, assetNode, componentNode]),
-      act: (cubit) => cubit.filterByText(query: 'Filtered'),
+      act: (cubit) => cubit.onTextQuery('Asset'),
+      wait: const Duration(milliseconds: 600),
       expect: () => [
         AssetState(
           nodes: [locationNode, assetNode, componentNode],
+          status: AssetStateStatus.loading,
+        ),
+        AssetState(
+          nodes: [locationNode, assetNode, componentNode],
           filteredNodes: [
-            Node(id: '4', name: 'Filtered Node', type: NodeType.asset)
+            Node(id: '4', name: 'Asset Node', type: NodeType.asset)
           ],
-          status: AssetStateStatus.filtered,
+          status: AssetStateStatus.success,
           activeFilter: ActiveFilter.text,
         ),
       ],
@@ -90,10 +101,16 @@ void main() {
     blocTest<AssetCubit, AssetState>(
       'emits [filtered, success] when onFilterByEnergySensorTapped is called',
       build: () {
-        when(() =>
-            mockBuildTreeUseCase.filterByStatus(
-                nodes: any(named: 'nodes'), status: 'operating')).thenReturn(
-            [Node(id: '5', name: 'Energy Sensor Node', type: NodeType.asset)]);
+        when(
+          () => mockBuildTreeUseCase.filterTreeData(
+            nodes: any(named: 'nodes'),
+            sensorType: NodeSensorType.energy,
+          ),
+        ).thenAnswer(
+          (_) => Future.value(
+            [Node(id: '5', name: 'Energy Sensor Node', type: NodeType.asset)],
+          ),
+        );
         return assetCubit;
       },
       seed: () => AssetState(nodes: [locationNode, assetNode, componentNode]),
@@ -101,10 +118,14 @@ void main() {
       expect: () => [
         AssetState(
           nodes: [locationNode, assetNode, componentNode],
+          status: AssetStateStatus.loading,
+        ),
+        AssetState(
+          nodes: [locationNode, assetNode, componentNode],
           filteredNodes: [
             Node(id: '5', name: 'Energy Sensor Node', type: NodeType.asset)
           ],
-          status: AssetStateStatus.filtered,
+          status: AssetStateStatus.success,
           activeFilter: ActiveFilter.energySensor,
         ),
       ],
@@ -113,10 +134,21 @@ void main() {
     blocTest<AssetCubit, AssetState>(
       'emits [filtered, success] when onFilterByCriticStateTapped is called',
       build: () {
-        when(() =>
-            mockBuildTreeUseCase.filterByStatus(
-                nodes: any(named: 'nodes'), status: 'alert')).thenReturn(
-            [Node(id: '6', name: 'Critic State Node', type: NodeType.asset)]);
+        when(() => mockBuildTreeUseCase.filterTreeData(
+              nodes: any(named: 'nodes'),
+              status: NodeStatus.alert,
+            )).thenAnswer(
+          (_) => Future.value(
+            [
+              Node(
+                id: '6',
+                name: 'Critic State Node',
+                type: NodeType.asset,
+                status: NodeStatus.alert,
+              )
+            ],
+          ),
+        );
         return assetCubit;
       },
       seed: () => AssetState(nodes: [locationNode, assetNode, componentNode]),
@@ -124,10 +156,19 @@ void main() {
       expect: () => [
         AssetState(
           nodes: [locationNode, assetNode, componentNode],
+          status: AssetStateStatus.loading,
+        ),
+        AssetState(
+          nodes: [locationNode, assetNode, componentNode],
           filteredNodes: [
-            Node(id: '6', name: 'Critic State Node', type: NodeType.asset)
+            Node(
+              id: '6',
+              name: 'Critic State Node',
+              type: NodeType.asset,
+              status: NodeStatus.alert,
+            ),
           ],
-          status: AssetStateStatus.filtered,
+          status: AssetStateStatus.success,
           activeFilter: ActiveFilter.criticState,
         ),
       ],
