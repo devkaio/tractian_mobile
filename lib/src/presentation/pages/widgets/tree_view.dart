@@ -17,6 +17,7 @@ class TreeView extends StatelessWidget {
       itemBuilder: (context, index) {
         final node = nodes[index];
         return TreeTileWidget(
+          key: ValueKey(node.id),
           node: node,
           level: 0,
           index: index,
@@ -64,18 +65,19 @@ class TreeTileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: node.children.isEmpty
-          ? null
-          : () {
-              node.updateExpansionStatus(!node.expanded);
-              (context as Element).markNeedsBuild();
-            },
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 2.0),
-        child: Column(
-          children: [
-            Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: node.children.isEmpty
+              ? null
+              : () {
+                  node.updateExpansionStatus(!node.expanded);
+                  (context as Element).markNeedsBuild();
+                },
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 2.0),
+            child: Row(
               children: [
                 if (node.children.isNotEmpty)
                   Icon(
@@ -89,7 +91,9 @@ class TreeTileWidget extends StatelessWidget {
                 Flexible(
                     child: Padding(
                   padding: EdgeInsets.only(left: 4.0),
-                  child: Text(node.name),
+                  child: Text(
+                    node.name,
+                  ),
                 )),
                 Padding(
                   padding: EdgeInsets.only(left: 4.0),
@@ -97,19 +101,19 @@ class TreeTileWidget extends StatelessWidget {
                 ),
               ],
             ),
-            if (node.expanded)
-              for (final child in node.children)
-                Padding(
-                  padding: EdgeInsets.only(left: 24),
-                  child: TreeTileWidget(
-                    node: child,
-                    level: level + 1,
-                    index: index,
-                  ),
-                ),
-          ],
+          ),
         ),
-      ),
+        if (node.expanded)
+          for (final child in node.children)
+            Padding(
+              padding: EdgeInsets.only(left: 24),
+              child: TreeTileWidget(
+                node: child,
+                level: level + 1,
+                index: index,
+              ),
+            ),
+      ],
     );
   }
 }

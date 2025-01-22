@@ -135,16 +135,6 @@ class AssetCubit extends Cubit<AssetState> {
   Future<void> _filterByText([String query = '']) async {
     emit(state.copyWith(status: AssetStateStatus.loading));
 
-    if (query.isEmpty) {
-      return emit(
-        state.copyWith(
-          filteredNodes: [],
-          status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.text,
-        ),
-      );
-    }
-
     _filterByTextOperation?.cancel();
 
     _filterByTextOperation = CancelableOperation.fromFuture(
@@ -200,6 +190,7 @@ class AssetCubit extends Cubit<AssetState> {
         state.copyWith(
           filteredNodes: [],
           status: AssetStateStatus.success,
+          activeFilter: ActiveFilter.none,
         ),
       );
     }
@@ -237,6 +228,7 @@ class AssetCubit extends Cubit<AssetState> {
         state.copyWith(
           filteredNodes: [],
           status: AssetStateStatus.success,
+          activeFilter: ActiveFilter.none,
         ),
       );
     }

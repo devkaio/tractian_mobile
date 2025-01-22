@@ -216,15 +216,9 @@ class BuildTreeUseCase {
       }
 
       if (isNodeFiltered) {
-        return Node(
-          id: node.id,
-          name: node.name,
-          type: node.type,
-          sensorType: node.sensorType,
-          status: node.status,
+        return node.copyWith(
           children: filteredChildren,
-          parentId: node.parentId,
-        );
+        )..updateExpansionStatus(node.expanded);
       }
 
       return null;
