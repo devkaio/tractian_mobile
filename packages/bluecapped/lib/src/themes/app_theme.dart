@@ -32,6 +32,9 @@ class BlueCappedTheme {
           ui: _lightData.ui,
         )
       ],
+      iconTheme: IconThemeData(
+        color: _lightData.primary.blue,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         fillColor: _lightData.neutral.grey200,
         border: _inputBorder,
@@ -50,6 +53,9 @@ class BlueCappedTheme {
           ui: _darkData.ui,
         )
       ],
+      iconTheme: IconThemeData(
+        color: _darkData.primary.blue,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         fillColor: _lightData.neutral.grey200,
         border: _inputBorder,
