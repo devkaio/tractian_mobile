@@ -65,7 +65,7 @@ void main() {
     );
 
     blocTest<AssetCubit, AssetState>(
-      'emits [filtered] when filterByText is called with a non-empty query',
+      'emits [loading, filtered] when filterByText is called with a non-empty query and no filters applied',
       build: () {
         when(
           () => mockBuildTreeUseCase.filterTreeData(
@@ -94,6 +94,7 @@ void main() {
           ],
           status: AssetStateStatus.success,
           activeFilter: ActiveFilter.text,
+          textQuery: 'Asset',
         ),
       ],
     );
