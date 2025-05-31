@@ -70,7 +70,7 @@ class _AppWidgetState extends State<AppWidget> {
     super.didChangeDependencies();
 
     isDarkNotifier.value =
-        MediaQuery.of(context).platformBrightness == Brightness.dark;
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
   }
 
   @override
