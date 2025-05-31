@@ -58,4 +58,82 @@ void main() {
       expect(updatedNode.children, isEmpty);
     });
   });
+
+  group('FlatNode & flattenTree', () {
+    test('flattenTree returns correct flat list and depth', () {
+      final tree = [
+        Node(
+          id: '1',
+          name: 'Root',
+          type: NodeType.location,
+          expanded: true,
+          children: [
+            Node(
+              id: '1-1',
+              name: 'Child',
+              type: NodeType.asset,
+              expanded: true,
+              children: [
+                Node(
+                  id: '1-1-1',
+                  name: 'Grandchild',
+                  type: NodeType.component,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ];
+
+      final flat = tree.flattenTree();
+      expect(flat.length, 3);
+      expect(flat[0].node.id, '1');
+      expect(flat[0].depth, 0);
+      expect(flat[1].node.id, '1-1');
+      expect(flat[1].depth, 1);
+      expect(flat[2].node.id, '1-1-1');
+      expect(flat[2].depth, 2);
+    });
+
+    test('flattenTree skips children of collapsed nodes', () {
+      final tree = [
+        Node(
+          id: '1',
+          name: 'Root',
+          type: NodeType.location,
+          expanded: false,
+          children: [
+            Node(
+              id: '1-1',
+              name: 'Child',
+              type: NodeType.asset,
+            ),
+          ],
+        ),
+      ];
+
+      final flat = tree.flattenTree();
+      expect(flat.length, 1);
+      expect(flat[0].node.id, '1');
+    });
+
+    test('flattenTree works with multiple root nodes', () {
+      final tree = [
+        Node(id: '1', name: 'Root1', type: NodeType.location),
+        Node(id: '2', name: 'Root2', type: NodeType.asset),
+      ];
+
+      final flat = tree.flattenTree();
+      expect(flat.length, 2);
+      expect(flat[0].node.id, '1');
+      expect(flat[1].node.id, '2');
+    });
+
+    test('FlatNode stores node and depth correctly', () {
+      final node = Node(id: '1', name: 'Test', type: NodeType.location);
+      final flat = FlatNode(node, 3);
+      expect(flat.node, node);
+      expect(flat.depth, 3);
+    });
+  });
 }

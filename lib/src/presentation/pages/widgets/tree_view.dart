@@ -14,16 +14,20 @@ class TreeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final flatNodes = nodes.flattenTree();
     return ListView.builder(
-      itemCount: nodes.length,
+      itemCount: flatNodes.length,
       itemBuilder: (context, index) {
-        final node = nodes[index];
-        return TreeTileWidget(
-          key: ValueKey(node.id),
-          node: node,
-          level: 0,
-          index: index,
-          onToggle: onNodeTap,
+        final flat = flatNodes[index];
+        return Padding(
+          padding: EdgeInsets.only(left: flat.depth * 24.0),
+          child: TreeTileWidget(
+            key: ValueKey(flat.node.id),
+            node: flat.node,
+            level: flat.depth,
+            index: index,
+            onToggle: onNodeTap,
+          ),
         );
       },
     );
@@ -105,17 +109,6 @@ class TreeTileWidget extends StatelessWidget {
             ),
           ),
         ),
-        if (node.expanded)
-          for (final child in node.children)
-            Padding(
-              padding: EdgeInsets.only(left: 24),
-              child: TreeTileWidget(
-                node: child,
-                level: level + 1,
-                index: index,
-                onToggle: onToggle,
-              ),
-            ),
       ],
     );
   }
