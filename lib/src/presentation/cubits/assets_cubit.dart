@@ -28,6 +28,7 @@ class AssetState extends Equatable {
     this.status = AssetStateStatus.initial,
     this.activeFilter = ActiveFilter.none,
     this.message = '',
+    this.textQuery = ''
   });
 
   final List<Node> nodes;
@@ -35,6 +36,7 @@ class AssetState extends Equatable {
   final AssetStateStatus status;
   final ActiveFilter activeFilter;
   final String message;
+  final String textQuery;
 
   AssetState copyWith({
     List<Node>? nodes,
@@ -42,6 +44,7 @@ class AssetState extends Equatable {
     ActiveFilter? activeFilter,
     AssetStateStatus? status,
     String? message,
+    String? textQuery,
   }) {
     return AssetState(
       nodes: nodes ?? this.nodes,
@@ -49,6 +52,7 @@ class AssetState extends Equatable {
       activeFilter: activeFilter ?? this.activeFilter,
       status: status ?? this.status,
       message: message ?? this.message,
+      textQuery: textQuery ?? this.textQuery,
     );
   }
 
@@ -59,6 +63,7 @@ class AssetState extends Equatable {
         status,
         activeFilter,
         message,
+        textQuery,
       ];
 
   @override
@@ -68,9 +73,7 @@ class AssetState extends Equatable {
 class AssetCubit extends Cubit<AssetState> {
   final BuildTreeUseCase buildTreeUseCase;
   CancelableOperation<DataResult<List<Node>>>? _fetchTreeDataOperation;
-  CancelableOperation<List<Node>>? _filterByTextOperation;
-  CancelableOperation<List<Node>>? _filterByEnergySensorOperation;
-  CancelableOperation<List<Node>>? _filterByCriticStateOperation;
+  CancelableOperation<List<Node>>? _filterOperation;
 
   Timer? _debounceTimer;
 
@@ -129,127 +132,60 @@ class AssetCubit extends Cubit<AssetState> {
 
   void onTextQuery([String query = '']) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      _filterByText(query);
-    });
-  }
-
-  Future<void> _filterByText([String query = '']) async {
-    emit(state.copyWith(status: AssetStateStatus.loading));
-
-    _filterByTextOperation?.cancel();
-
-    if (query.trim().isEmpty) {
-      emit(state.copyWith(
-        filteredNodes: [],
-        status: AssetStateStatus.success,
-        activeFilter: ActiveFilter.none,
-      ));
-      return;
-    }
-
-    _filterByTextOperation = CancelableOperation.fromFuture(
-      buildTreeUseCase.filterTreeData(
-        nodes: state.nodes,
-        query: query,
-      ),
-      onCancel: () {
-        return;
-      },
-    );
-
-    final filteredNodes = await _filterByTextOperation?.valueOrCancellation([]);
-
-    emit(
-      state.copyWith(
-        filteredNodes: filteredNodes,
-        status: AssetStateStatus.success,
-        activeFilter: ActiveFilter.text,
-      ),
-    );
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () => _applyFilters(query: query));
   }
 
   Future<void> onFilterByEnergySensorTapped() async {
-    emit(state.copyWith(status: AssetStateStatus.loading));
-
-    if (state.activeFilter == ActiveFilter.none ||
-        state.activeFilter == ActiveFilter.criticState) {
-      _filterByEnergySensorOperation?.cancel();
-
-      _filterByEnergySensorOperation = CancelableOperation.fromFuture(
-        buildTreeUseCase.filterTreeData(
-          nodes: state.nodes,
-          sensorType: NodeSensorType.energy,
-        ),
-        onCancel: () {
-          return;
-        },
-      );
-
-      final filteredNodes =
-          await _filterByEnergySensorOperation?.valueOrCancellation([]);
-
-      return emit(
-        state.copyWith(
-          filteredNodes: filteredNodes,
-          status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.energySensor,
-        ),
-      );
-    } else {
-      return emit(
-        state.copyWith(
-          filteredNodes: [],
-          status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.none,
-        ),
-      );
-    }
+    final isActive = state.activeFilter == ActiveFilter.energySensor;
+    await _applyFilters(activeFilter: isActive ? ActiveFilter.none : ActiveFilter.energySensor);
   }
 
   Future<void> onFilterByCriticStateTapped() async {
+    final isActive = state.activeFilter == ActiveFilter.criticState;
+    await _applyFilters(activeFilter: isActive ? ActiveFilter.none : ActiveFilter.criticState);
+  }
+  
+  Future<void> _applyFilters({
+    String? query,
+    ActiveFilter? activeFilter,
+  }) async {
     emit(state.copyWith(status: AssetStateStatus.loading));
 
-    if (state.activeFilter == ActiveFilter.none ||
-        state.activeFilter == ActiveFilter.energySensor) {
-      _filterByCriticStateOperation?.cancel();
+    _filterOperation?.cancel();
 
-      _filterByCriticStateOperation = CancelableOperation.fromFuture(
-        buildTreeUseCase.filterTreeData(
-          nodes: state.nodes,
-          status: NodeStatus.alert,
-        ),
-        onCancel: () {
-          return;
-        },
-      );
+    final filter = activeFilter ?? state.activeFilter;
+    final text = query ?? state.textQuery;
 
-      final filteredNodes =
-          await _filterByCriticStateOperation?.valueOrCancellation([]);
+    NodeSensorType? sensorType;
+    NodeStatus? status;
 
-      return emit(
-        state.copyWith(
-          filteredNodes: filteredNodes,
-          status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.criticState,
-        ),
-      );
-    } else {
-      return emit(
-        state.copyWith(
-          filteredNodes: [],
-          status: AssetStateStatus.success,
-          activeFilter: ActiveFilter.none,
-        ),
-      );
+    if (filter == ActiveFilter.energySensor) {
+      sensorType = NodeSensorType.energy;
+    } else if (filter == ActiveFilter.criticState) {
+      status = NodeStatus.alert;
     }
+
+    final filteredNodes = await buildTreeUseCase.filterTreeData(
+      nodes: state.nodes,
+      query: text.isNotEmpty ? text : null,
+      sensorType: sensorType,
+      status: status,
+    );
+
+    final bool isTextOnly = (filter == ActiveFilter.none) && text.isNotEmpty;
+
+    emit(state.copyWith(
+      filteredNodes: filteredNodes,
+      status: AssetStateStatus.success,
+      activeFilter: isTextOnly ? ActiveFilter.text : filter,
+      textQuery: text,
+    ));
   }
 
   @override
   Future<void> close() {
     _fetchTreeDataOperation?.cancel();
-    _filterByTextOperation?.cancel();
-    _filterByEnergySensorOperation?.cancel();
+    _filterOperation?.cancel();
     return super.close();
   }
 }
