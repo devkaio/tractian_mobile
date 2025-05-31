@@ -99,3 +99,36 @@ class Node {
     return 'Node(id: $id, name: $name, type: $type, parentId: $parentId, locationId: $locationId, sensorType: $sensorType, status: $status, children: $children, expanded: $expanded)';
   }
 }
+
+class FlatNode {
+  final Node node;
+  final int depth;
+  FlatNode(this.node, this.depth);
+}
+extension ListExpander on List<Node> {
+  List<Node> expandAll() => map((node) => node.copyWith(
+          expanded: true,
+          children: node.children.expandAll(),
+        )).toList();
+
+
+  List<Node> expandOne(String nodeId) {
+    return map((n) {
+      if (n.id == nodeId) {
+        return n.copyWith(expanded: !n.expanded);
+      }
+      return n.copyWith(children: n.children.expandOne(nodeId));
+    }).toList();
+  }
+
+  List<FlatNode> flattenTree([int depth = 0]) {
+    final List<FlatNode> flat = [];
+    for (final node in this) {
+      flat.add(FlatNode(node, depth));
+      if (node.expanded) {
+        flat.addAll(node.children.flattenTree(depth + 1));
+      }
+    }
+    return flat;
+  }
+}

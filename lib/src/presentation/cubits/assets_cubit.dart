@@ -139,6 +139,15 @@ class AssetCubit extends Cubit<AssetState> {
 
     _filterByTextOperation?.cancel();
 
+    if (query.trim().isEmpty) {
+      emit(state.copyWith(
+        filteredNodes: [],
+        status: AssetStateStatus.success,
+        activeFilter: ActiveFilter.none,
+      ));
+      return;
+    }
+
     _filterByTextOperation = CancelableOperation.fromFuture(
       buildTreeUseCase.filterTreeData(
         nodes: state.nodes,

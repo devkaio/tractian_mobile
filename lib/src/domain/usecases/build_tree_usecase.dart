@@ -258,19 +258,3 @@ class BuildTreeUseCase {
   }
 }
 
-extension ListExpander on List<Node> {
-  List<Node> expandAll() => map((node) => node.copyWith(
-          expanded: true,
-          children: node.children.expandAll(),
-        )).toList();
-
-
-  List<Node> expandOne(String nodeId) {
-    return map((n) {
-      if (n.id == nodeId) {
-        return n.copyWith(expanded: !n.expanded);
-      }
-      return n.copyWith(children: n.children.expandOne(nodeId));
-    }).toList();
-  }
-}
