@@ -77,14 +77,16 @@ class AssetCubit extends Cubit<AssetState> {
   AssetCubit(this.buildTreeUseCase) : super(const AssetState());
 
   void onExpandedToggled(Node node) {
-    if (node.expanded) {
-      node.updateExpansionStatus(false);
-    } else {
-      node.updateExpansionStatus(true);
-    }
+    final isFiltered = state.activeFilter != ActiveFilter.none;
+    final nodes = isFiltered ? state.filteredNodes : state.nodes;
+
+  final updatedNodes = nodes.expandOne(node.id);
 
     emit(
-      state.copyWith(nodes: state.nodes),
+      state.copyWith(
+        nodes: isFiltered ? state.nodes : updatedNodes,
+        filteredNodes: isFiltered ? updatedNodes : state.filteredNodes,
+      ),
     );
   }
 

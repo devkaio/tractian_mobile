@@ -4,10 +4,12 @@ import 'package:tractian_mobile/src/domain/entities/node.dart';
 
 class TreeView extends StatelessWidget {
   final List<Node> nodes;
+  final void Function(Node node) onNodeTap;
 
   const TreeView({
     super.key,
     required this.nodes,
+    required this.onNodeTap,
   });
 
   @override
@@ -21,6 +23,7 @@ class TreeView extends StatelessWidget {
           node: node,
           level: 0,
           index: index,
+          onToggle: onNodeTap,
         );
       },
     );
@@ -33,11 +36,13 @@ class TreeTileWidget extends StatelessWidget {
     required this.node,
     required this.level,
     required this.index,
+    required this.onToggle,
   });
 
   final Node node;
   final int level;
   final int index;
+  final void Function(Node node) onToggle;
 
   Icon get _leadinIcon => switch (node.type) {
         NodeType.location => Icon(BlueCappedIcons.location),
@@ -71,10 +76,7 @@ class TreeTileWidget extends StatelessWidget {
         InkWell(
           onTap: node.children.isEmpty
               ? null
-              : () {
-                  node.updateExpansionStatus(!node.expanded);
-                  (context as Element).markNeedsBuild();
-                },
+              : () => onToggle(node),
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 2.0),
             child: Row(
@@ -111,6 +113,7 @@ class TreeTileWidget extends StatelessWidget {
                 node: child,
                 level: level + 1,
                 index: index,
+                onToggle: onToggle,
               ),
             ),
       ],

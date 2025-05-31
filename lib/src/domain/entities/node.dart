@@ -25,14 +25,7 @@ class Node {
   final NodeSensorType? sensorType;
   final NodeStatus? status;
   final List<Node> children;
-
-  bool _expanded = false;
-
-  bool get expanded => _expanded;
-
-  void updateExpansionStatus(bool value) {
-    _expanded = value;
-  }
+  final bool expanded;
 
   Node({
     required this.id,
@@ -43,6 +36,7 @@ class Node {
     this.sensorType,
     this.status,
     this.children = const [],
+    this.expanded = false,
   });
 
   bool get isRoot => parentId == null && locationId == null;
@@ -59,8 +53,6 @@ class Node {
     bool? expanded,
     bool? isFiltered,
   }) {
-    _expanded = expanded ?? this.expanded;
-
     return Node(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -70,6 +62,7 @@ class Node {
       sensorType: sensorType ?? this.sensorType,
       status: status ?? this.status,
       children: children ?? this.children,
+      expanded: expanded ?? this.expanded,
     );
   }
 
@@ -103,6 +96,6 @@ class Node {
 
   @override
   String toString() {
-    return 'Node(id: $id, name: $name, type: $type, parentId: $parentId, locationId: $locationId, sensorType: $sensorType, status: $status, children: $children, _expanded: $_expanded)';
+    return 'Node(id: $id, name: $name, type: $type, parentId: $parentId, locationId: $locationId, sensorType: $sensorType, status: $status, children: $children, expanded: $expanded)';
   }
 }
