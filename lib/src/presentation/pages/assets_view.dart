@@ -106,7 +106,10 @@ class _AssetsViewState extends State<AssetsView> {
                             child: Text(
                                 'Nenhum ativo encontrado. Tente outro filtro.'));
                       }
-                      return TreeView(nodes: nodes);
+                      return TreeView(
+                        nodes: nodes,
+                        onNodeTap: (node) => context.read<AssetCubit>().onExpandedToggled(node),
+                      );
                     default:
                       return Center(child: Text('No data'));
                   }

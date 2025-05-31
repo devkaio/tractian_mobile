@@ -218,7 +218,8 @@ class BuildTreeUseCase {
       if (isNodeFiltered) {
         return node.copyWith(
           children: filteredChildren,
-        )..updateExpansionStatus(node.expanded);
+          expanded: node.expanded,
+        );
       }
 
       return null;
@@ -253,6 +254,23 @@ class BuildTreeUseCase {
 
     final filteredNodes = await compute(filterTree, nodeMap);
 
-    return filteredNodes;
+    return filteredNodes.expandAll();
+  }
+}
+
+extension ListExpander on List<Node> {
+  List<Node> expandAll() => map((node) => node.copyWith(
+          expanded: true,
+          children: node.children.expandAll(),
+        )).toList();
+
+
+  List<Node> expandOne(String nodeId) {
+    return map((n) {
+      if (n.id == nodeId) {
+        return n.copyWith(expanded: !n.expanded);
+      }
+      return n.copyWith(children: n.children.expandOne(nodeId));
+    }).toList();
   }
 }

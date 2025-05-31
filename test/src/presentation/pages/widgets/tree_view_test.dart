@@ -47,8 +47,7 @@ void main() {
       assetCubit = AssetCubit(mockBuildTreeUseCase);
     });
 
-    testWidgets('TreeView displays nodes correctly',
-        (WidgetTester tester) async {
+    testWidgets('TreeView displays nodes correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: BlueCappedTheme().light,
@@ -56,7 +55,10 @@ void main() {
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,
-              child: TreeView(nodes: nodes),
+              child: TreeView(
+                nodes: nodes,
+                onNodeTap: assetCubit.onExpandedToggled,
+              ),
             ),
           ),
         ),
@@ -68,8 +70,9 @@ void main() {
       expect(find.byIcon(BlueCappedIcons.component), findsOneWidget);
     });
 
-    testWidgets('TreeTileWidget expands and collapses correctly',
-        (WidgetTester tester) async {
+    testWidgets('TreeTileWidget expands and collapses correctly', (WidgetTester tester) async {
+      assetCubit.emit(assetCubit.state.copyWith(nodes: nodes));
+
       await tester.pumpWidget(
         MaterialApp(
           theme: BlueCappedTheme().light,
@@ -77,7 +80,12 @@ void main() {
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,
-              child: TreeView(nodes: nodes),
+              child: BlocBuilder<AssetCubit, AssetState>(
+                builder: (context, state) => TreeView(
+                  nodes: state.nodes,
+                  onNodeTap: assetCubit.onExpandedToggled,
+                ),
+              ),
             ),
           ),
         ),
@@ -86,18 +94,19 @@ void main() {
       expect(find.text('Node 1-1'), findsNothing);
 
       await tester.tap(find.text('Node 1'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Durations.extralong4);
 
       expect(find.text('Node 1-1'), findsOneWidget);
 
       await tester.tap(find.text('Node 1'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Durations.extralong4);
 
       expect(find.text('Node 1-1'), findsNothing);
     });
 
-    testWidgets('TreeTileWidget displays status icons correctly',
-        (WidgetTester tester) async {
+    testWidgets('TreeTileWidget displays status icons correctly', (WidgetTester tester) async {
+      assetCubit.emit(assetCubit.state.copyWith(nodes: nodes));
+
       await tester.pumpWidget(
         MaterialApp(
           theme: BlueCappedTheme().light,
@@ -105,7 +114,12 @@ void main() {
           home: Scaffold(
             body: BlocProvider(
               create: (_) => assetCubit,
-              child: TreeView(nodes: nodes),
+              child: BlocBuilder<AssetCubit, AssetState>(
+                builder: (context, state) => TreeView(
+                  nodes: state.nodes,
+                  onNodeTap: assetCubit.onExpandedToggled,
+                ),
+              ),
             ),
           ),
         ),
